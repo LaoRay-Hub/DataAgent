@@ -12,16 +12,21 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
+# 与 data-pilot 联部时，先在宿主机执行一次（两边 compose 都把它声明为 external，缺了谁都起不来）：
+#   docker network create dp-dataagent-net
+
 services:
   # MySQL数据库
   mysql:
     image: mysql:8.0
     container_name: data-agent-mysql-inner
+    command:
+      - --character-set-server=utf8mb4
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: nl2sql_db
-#    volumes:
-#      - nl2sql-mysql-inner-data:/var/lib/mysql
+      MYSQL_ROOT_PASSWORD: ${DATAAGENT_DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DATAAGENT_DB_NAME:-nl2sql_db}
+    volumes:
+      - data-agent-mysql-inner-data:/var/lib/mysql
     networks:
       - app-network
     restart: unless-stopped
@@ -40,13 +45,18 @@ services:
         - saa-data-agent-backend:1.0.0-SNAPSHOT
     container_name: data-agent-backend
     environment:
-      - DATA_AGENT_DATASOURCE_URL=jdbc:mysql://mysql:3306/nl2sql_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      - DATA_AGENT_DATASOURCE_USERNAME=root
-      - DATA_AGENT_DATASOURCE_PASSWORD=root
-      - DATA_AGENT_DATASOURCE_SQL_INIT=always
+      - DATA_AGENT_DATASOURCE_URL=jdbc:mysql://mysql:3306/${DATAAGENT_DB_NAME:-nl2sql_db}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      - DATA_AGENT_DATASOURCE_USERNAME=${DATAAGENT_DB_USERNAME:-root}
+      - DATA_AGENT_DATASOURCE_PASSWORD=${DATAAGENT_DB_PASSWORD:-root}
+      - DATA_AGENT_DATASOURCE_SQL_INIT=${DATAAGENT_SQL_INIT:-always}
       - AI_DASHSCOPE_API_KEY=${AI_DASHSCOPE_API_KEY}
-    ports:
-      - "8065:8065"
+      # 嵌入 data-pilot 时必须为 true。这个开关是 fail-open 的：配错了不报错，
+      # 只是 X-Dp-User-Id / X-Dp-Workspace-Id 被忽略，所有用户共享同一份智能体和会话。
+      - DATAAGENT_TENANT_ENABLED=${DATAAGENT_TENANT_ENABLED:-true}
+    # 故意不映射 8065。宿主机一旦能直连后端，就绕过了 data-pilot 的反代，
+    # 拿不到身份头，租户隔离等于没有；只有前端容器经共享网络访问它。
+    expose:
+      - "8065"
     depends_on:
       mysql:
         condition: service_healthy
@@ -55,25 +65,40 @@ services:
       postgres-data:
         condition: service_healthy
     networks:
-      - app-network
+      app-network:
+      dp-dataagent-net:
+        # data-pilot 侧按这个名字反代过来；服务名 backend 太泛，显式起别名
+        aliases:
+          - data-agent-backend
     restart: no
 
-  # Vue前端服务
+  # Nuxt 前端。镜像内跑 nitro 的 node server，/api 与 /nl2sql 的反代由它承担，
+  # 不再挂 nginx 配置：只有 node server 会按请求注入 runtimeConfig，下面那个
+  # NUXT_PUBLIC_* 才能在运行期改。
   frontend:
     build:
       context: ..
       dockerfile: ./docker-file/Dockerfile-frontend
+      args:
+        # 构建期烘焙进产物，改了必须重新 build。必须指向 data-pilot 的反代，
+        # 直连 backend:8065 会丢掉身份头。
+        DATAAGENT_API_UPSTREAM: ${DATAAGENT_API_UPSTREAM:-http://data-pilot-web:8080/dp-web/dataagent/api}
+        DATAAGENT_NL2SQL_UPSTREAM: ${DATAAGENT_NL2SQL_UPSTREAM:-http://data-pilot-web:8080/dp-web/dataagent/nl2sql}
       tags:
         - saa-data-agent-frontend:1.0.0-SNAPSHOT
     container_name: data-agent-frontend
     ports:
-      - "3000:3000"  # 只暴露前端端口
+      - "${DATAAGENT_FRONTEND_PORT:-3000}:3000"  # 只暴露前端端口
+    environment:
+      # 浏览器地址栏里 data-pilot 前端的真实 origin（含 scheme 和端口）。
+      # 填错的后果是 postMessage 被全部丢弃：页面打得开，但没有任何数据，也不报错。
+      - NUXT_PUBLIC_DP_EMBED_PARENT_ORIGIN=${DATAAGENT_EMBED_PARENT_ORIGIN:-http://localhost:5173}
     depends_on:
       - backend
-    volumes:
-      - ./config/nginx.conf:/etc/nginx/nginx.conf
     networks:
-      - app-network
+      app-network:
+      # 要能解析到 data-pilot-web，反代才连得上
+      dp-dataagent-net:
     restart: unless-stopped
 
   # MySQL 模拟数据源
@@ -82,7 +107,7 @@ services:
     container_name: data-agent-mysql-datasource
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${DATAAGENT_DEMO_MYSQL_PASSWORD:-root}
     networks:
       - app-network
     volumes:
@@ -101,7 +126,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DATAAGENT_DEMO_PG_PASSWORD:-postgres}
     networks:
       - app-network
     volumes:
@@ -119,3 +144,6 @@ networks:
   app-network:
     driver: bridge
     name: "data-agent-network"
+  dp-dataagent-net:
+    external: true
+    name: dp-dataagent-net

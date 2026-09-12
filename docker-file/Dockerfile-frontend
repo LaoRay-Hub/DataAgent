@@ -13,28 +13,52 @@
 #limitations under the License.
 
 # 构建阶段
-FROM node:20-alpine AS builder
+# Nuxt 产出的 .output/server/chunks/nitro/nitro.mjs 里，routeRules 的 /api 代理目标
+# 是在 nuxt build 时就把 nuxt.config.ts 的 process.env 插值写死的，运行期改不了，
+# 所以下面两个上游地址必须是构建参数；而 NUXT_PUBLIC_* 走 runtimeConfig，运行期可覆盖。
+# 基础镜像走 daocloud 加速（与 data-pilot 的 Dockerfile 约定一致）；
+# 能直连 Docker Hub 的环境用 --build-arg NODE_IMAGE=node:22-alpine 覆盖。
+ARG NODE_IMAGE=docker.m.daocloud.io/library/node:22-alpine
+
+FROM ${NODE_IMAGE} AS builder
 
 WORKDIR /app
 
-# 复制源代码
-COPY data-agent-frontend .
+RUN npm install -g pnpm@10
 
-# 安装依赖
-RUN npm install
+# 先只拷清单，让依赖层可以命中缓存
+COPY data-agent-frontend-nuxt/package.json data-agent-frontend-nuxt/pnpm-lock.yaml \
+     data-agent-frontend-nuxt/pnpm-workspace.yaml data-agent-frontend-nuxt/.npmrc ./
 
-# 构建生产版本
-RUN npm run build
+RUN pnpm install --frozen-lockfile
+
+COPY data-agent-frontend-nuxt/ ./
+
+# 嵌入 data-pilot 时必须指向它的反代（/dp-web/dataagent），直连后端会丢掉租户身份头，隔离会静默失效
+ARG DATAAGENT_API_UPSTREAM=http://data-pilot-web:8080/dp-web/dataagent/api
+ARG DATAAGENT_NL2SQL_UPSTREAM=http://data-pilot-web:8080/dp-web/dataagent/nl2sql
+ENV DATAAGENT_API_UPSTREAM=${DATAAGENT_API_UPSTREAM} \
+    DATAAGENT_NL2SQL_UPSTREAM=${DATAAGENT_NL2SQL_UPSTREAM}
+
+RUN pnpm build
 
 
 # 运行阶段
-FROM nginx:alpine
+# 必须跑 nitro 的 node server 而不是用 nginx 托管 .output/public：
+# 只有 node server 会按请求注入 runtimeConfig，NUXT_PUBLIC_DP_EMBED_PARENT_ORIGIN 才能在运行期生效；
+# /api 与 /nl2sql 的反代也由它承担，已验证 SSE（text/event-stream + chunked）可正常透传。
+FROM ${NODE_IMAGE}
 
-# 复制构建结果到nginx目录
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# 暴露端口
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=3000
+
+COPY --from=builder --chown=node:node /app/.output ./.output
+
+USER node
+
 EXPOSE 3000
 
-# 启动nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", ".output/server/index.mjs"]
