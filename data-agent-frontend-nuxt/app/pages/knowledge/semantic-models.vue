@@ -17,19 +17,19 @@
 <template>
 	<section class="page-shell">
 		<KnowledgePageHeader
-			title="语义模型配置"
-			subtitle="维护字段语义映射，统一业务口径，提升 SQL 生成准确性。"
+			:title="t('knowledge.semantic.title')"
+			:subtitle="t('knowledge.semantic.subtitle')"
 		>
 			<template #actions>
 				<v-btn
-					class="text-none bg-white"
-					style="border-color: #e2e8f0"
+					class="text-none refresh-btn"
+					style="border-color: var(--da-border)"
 					variant="outlined"
 					prepend-icon="mdi-refresh"
 					:loading="loading"
 					@click="loadSemanticModels"
 				>
-					刷新
+					{{ t('knowledge.semantic.refresh') }}
 				</v-btn>
 				<v-btn
 					color="blue-darken-1"
@@ -38,7 +38,7 @@
 					elevation="0"
 					@click="openBatchImportDialog"
 				>
-					批量导入
+					{{ t('knowledge.semantic.batchImport') }}
 				</v-btn>
 				<v-btn
 					color="blue-darken-3"
@@ -47,7 +47,7 @@
 					elevation="0"
 					@click="openCreateDialog"
 				>
-					添加语义模型
+					{{ t('knowledge.semantic.addModel') }}
 				</v-btn>
 			</template>
 		</KnowledgePageHeader>
@@ -56,7 +56,7 @@
 			<div class="d-flex flex-wrap ga-3 align-center">
 				<v-text-field
 					v-model="searchKeyword"
-					placeholder="请输入关键词搜索表名、字段名、业务名"
+					:placeholder="t('knowledge.semantic.searchPlaceholder')"
 					prepend-inner-icon="mdi-magnify"
 					variant="outlined"
 					density="compact"
@@ -75,15 +75,19 @@
 					class="text-none"
 					@click="batchDeleteModels"
 				>
-					批量删除 ({{ selectedModelIds.length }})
+					{{
+						t('knowledge.semantic.batchDelete', {
+							count: selectedModelIds.length,
+						})
+					}}
 				</v-btn>
 				<v-spacer />
-				<v-chip
-					color="blue-lighten-5"
-					variant="flat"
-					class="font-weight-medium"
-				>
-					总数 {{ semanticModelList.length }}
+				<v-chip variant="flat" class="font-weight-medium count-chip">
+					{{
+						t('knowledge.semantic.totalCount', {
+							count: semanticModelList.length,
+						})
+					}}
 				</v-chip>
 			</div>
 		</v-card>
@@ -101,11 +105,15 @@
 				<!-- eslint-disable-next-line vue/valid-v-slot -->
 				<template #item.status="{ item }">
 					<v-chip
-						:color="item.status === 1 ? 'success' : 'grey'"
+						:color="item.status === 1 ? 'success' : 'var(--da-text-faint)'"
 						size="small"
 						variant="tonal"
 					>
-						{{ item.status === 1 ? '启用' : '停用' }}
+						{{
+							item.status === 1
+								? t('knowledge.semantic.statusEnabled')
+								: t('knowledge.semantic.statusDisabled')
+						}}
 					</v-chip>
 				</template>
 
@@ -140,7 +148,7 @@
 						<v-btn
 							size="small"
 							variant="text"
-							color="blue-darken-1"
+							color="var(--da-primary-text)"
 							icon="mdi-pencil"
 							@click="editModel(item)"
 						/>
@@ -152,7 +160,9 @@
 							@click="toggleStatus(item, item.status === 1 ? 0 : 1)"
 						>
 							<v-tooltip activator="parent" location="top">{{
-								item.status === 1 ? '停用' : '启用'
+								item.status === 1
+									? t('knowledge.semantic.actionDisable')
+									: t('knowledge.semantic.actionEnable')
 							}}</v-tooltip>
 						</v-btn>
 						<v-btn
@@ -173,9 +183,11 @@
 							color="blue-lighten-3"
 							class="mb-4"
 						/>
-						<p class="text-body-1 text-medium-emphasis mb-2">暂无语义模型</p>
-						<p class="text-body-2 text-disabled mb-6">
-							点击「添加语义模型」开始配置字段语义映射
+						<p class="text-body-1 text-medium-emphasis mb-2">
+							{{ t('knowledge.semantic.emptyTitle') }}
+						</p>
+						<p class="text-body-2 mb-6" style="color: var(--da-text-muted)">
+							{{ t('knowledge.semantic.emptyHint') }}
 						</p>
 						<v-btn
 							color="blue-darken-3"
@@ -184,7 +196,7 @@
 							elevation="0"
 							@click="openCreateDialog"
 						>
-							添加语义模型
+							{{ t('knowledge.semantic.addModel') }}
 						</v-btn>
 					</div>
 				</template>
@@ -201,7 +213,9 @@
 						size="28"
 					/>
 					<span class="text-h6 font-weight-bold">{{
-						isEdit ? '编辑语义模型' : '添加语义模型'
+						isEdit
+							? t('knowledge.semantic.editTitle')
+							: t('knowledge.semantic.createTitle')
 					}}</span>
 					<v-spacer />
 					<v-btn
@@ -217,74 +231,78 @@
 					<v-form ref="formRef">
 						<v-row>
 							<v-col cols="12" md="6">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									表名 <span class="text-error">*</span>
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('knowledge.semantic.fieldTableName') }}
+									<span class="text-error">*</span>
 								</p>
 								<v-text-field
 									v-model="modelForm.tableName"
-									placeholder="请输入表名"
+									:placeholder="t('knowledge.semantic.tableNamePlaceholder')"
 									variant="outlined"
 									density="compact"
-									:rules="[(v) => !!v || '表名不能为空']"
+									:rules="[
+										(v) => !!v || t('knowledge.semantic.tableNameRequired'),
+									]"
 									hide-details="auto"
 								/>
 							</v-col>
 							<v-col cols="12" md="6">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									字段名 <span class="text-error">*</span>
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('knowledge.semantic.fieldColumnName') }}
+									<span class="text-error">*</span>
 								</p>
 								<v-text-field
 									v-model="modelForm.columnName"
-									placeholder="请输入数据库字段名"
+									:placeholder="t('knowledge.semantic.columnNamePlaceholder')"
 									variant="outlined"
 									density="compact"
-									:rules="[(v) => !!v || '字段名不能为空']"
+									:rules="[
+										(v) => !!v || t('knowledge.semantic.columnNameRequired'),
+									]"
 									hide-details="auto"
 								/>
 							</v-col>
 							<v-col cols="12" md="6">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									业务名称 <span class="text-error">*</span>
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('knowledge.semantic.fieldBusinessName') }}
+									<span class="text-error">*</span>
 								</p>
 								<v-text-field
 									v-model="modelForm.businessName"
-									placeholder="请输入业务名称"
+									:placeholder="
+										t('knowledge.semantic.businessNamePlaceholder')
+									"
 									variant="outlined"
 									density="compact"
-									:rules="[(v) => !!v || '业务名称不能为空']"
+									:rules="[
+										(v) => !!v || t('knowledge.semantic.businessNameRequired'),
+									]"
 									hide-details="auto"
 								/>
 							</v-col>
 							<v-col cols="12" md="6">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									数据类型 <span class="text-error">*</span>
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('knowledge.semantic.fieldDataType') }}
+									<span class="text-error">*</span>
 								</p>
 								<v-text-field
 									v-model="modelForm.dataType"
-									placeholder="如：int, varchar(64)"
+									:placeholder="t('knowledge.semantic.dataTypePlaceholder')"
 									variant="outlined"
 									density="compact"
-									:rules="[(v) => !!v || '数据类型不能为空']"
+									:rules="[
+										(v) => !!v || t('knowledge.semantic.dataTypeRequired'),
+									]"
 									hide-details="auto"
 								/>
 							</v-col>
 							<v-col cols="12">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									同义词
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('knowledge.semantic.fieldSynonyms') }}
 								</p>
 								<v-textarea
 									v-model="modelForm.synonyms"
-									placeholder="多个同义词请用逗号分隔"
+									:placeholder="t('knowledge.semantic.synonymsPlaceholder')"
 									variant="outlined"
 									density="compact"
 									rows="2"
@@ -292,14 +310,14 @@
 								/>
 							</v-col>
 							<v-col cols="12">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									业务描述
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('knowledge.semantic.fieldBusinessDescription') }}
 								</p>
 								<v-textarea
 									v-model="modelForm.businessDescription"
-									placeholder="描述该字段业务意义和口径"
+									:placeholder="
+										t('knowledge.semantic.businessDescriptionPlaceholder')
+									"
 									variant="outlined"
 									density="compact"
 									rows="3"
@@ -307,14 +325,14 @@
 								/>
 							</v-col>
 							<v-col cols="12">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									字段注释
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('knowledge.semantic.fieldColumnComment') }}
 								</p>
 								<v-textarea
 									v-model="modelForm.columnComment"
-									placeholder="数据库原始字段注释"
+									:placeholder="
+										t('knowledge.semantic.columnCommentPlaceholder')
+									"
 									variant="outlined"
 									density="compact"
 									rows="2"
@@ -327,9 +345,9 @@
 
 				<v-divider />
 				<v-card-actions class="pa-4 d-flex justify-end ga-2">
-					<v-btn variant="outlined" class="text-none px-6" @click="closeDialog"
-						>取消</v-btn
-					>
+					<v-btn variant="outlined" class="text-none px-6" @click="closeDialog">{{
+						t('knowledge.semantic.cancel')
+					}}</v-btn>
 					<v-btn
 						color="blue-darken-3"
 						class="text-none px-6"
@@ -337,7 +355,11 @@
 						:loading="saveLoading"
 						@click="saveModel"
 					>
-						{{ isEdit ? '保存更新' : '立即创建' }}
+						{{
+							isEdit
+								? t('knowledge.semantic.saveUpdate')
+								: t('knowledge.semantic.createNow')
+						}}
 					</v-btn>
 				</v-card-actions>
 			</v-card>
@@ -352,7 +374,9 @@
 						class="mr-3"
 						size="28"
 					/>
-					<span class="text-h6 font-weight-bold">批量导入语义模型</span>
+					<span class="text-h6 font-weight-bold">{{
+						t('knowledge.semantic.importTitle')
+					}}</span>
 					<v-spacer />
 					<v-btn
 						icon="mdi-close"
@@ -365,7 +389,7 @@
 				<v-card-text class="pa-6">
 					<v-file-input
 						v-model="importFile"
-						label="上传 Excel 文件"
+						:label="t('knowledge.semantic.importFileLabel')"
 						accept=".xlsx,.xls"
 						prepend-icon="mdi-file-excel"
 						variant="outlined"
@@ -376,12 +400,12 @@
 					<div class="d-flex ga-2 mt-4">
 						<v-btn
 							variant="tonal"
-							color="blue-darken-1"
+							color="var(--da-primary-text)"
 							prepend-icon="mdi-download"
 							class="text-none"
 							@click="downloadExcelTemplate"
 						>
-							下载模板
+							{{ t('knowledge.semantic.downloadTemplate') }}
 						</v-btn>
 						<v-btn
 							color="blue-darken-3"
@@ -391,7 +415,7 @@
 							:loading="importLoading"
 							@click="executeExcelImport"
 						>
-							开始导入
+							{{ t('knowledge.semantic.startImport') }}
 						</v-btn>
 					</div>
 				</v-card-text>
@@ -413,6 +437,7 @@ const agentId = computed(() => Number(route.query.agentId) || DEFAULT_AGENT_ID);
 
 const { $tip } = useNuxtApp();
 const { showConfirm } = useConfirm();
+const { t, locale } = useI18n();
 
 // ——— 额外状态 ———
 const importLoading = ref(false);
@@ -462,21 +487,58 @@ function openCreateDialog() {
 	modelForm.value.agentId = agentId.value;
 }
 
-const headers = [
-	{ title: '表名', key: 'tableName', minWidth: '120px' },
-	{ title: '字段名', key: 'columnName', minWidth: '130px' },
-	{ title: '业务名称', key: 'businessName', minWidth: '140px' },
-	{ title: '同义词', key: 'synonyms', minWidth: '170px', sortable: false },
-	{ title: '数据类型', key: 'dataType', width: '110px' },
-	{ title: '状态', key: 'status', width: '100px', sortable: false },
-	{ title: '创建时间', key: 'createdTime', width: '180px' },
-	{ title: '操作', key: 'actions', width: '140px', sortable: false },
-];
+// computed 保证切换语言后表头跟随更新
+const headers = computed(() => [
+	{
+		title: t('knowledge.semantic.col.tableName'),
+		key: 'tableName',
+		minWidth: '120px',
+	},
+	{
+		title: t('knowledge.semantic.col.columnName'),
+		key: 'columnName',
+		minWidth: '130px',
+	},
+	{
+		title: t('knowledge.semantic.col.businessName'),
+		key: 'businessName',
+		minWidth: '140px',
+	},
+	{
+		title: t('knowledge.semantic.col.synonyms'),
+		key: 'synonyms',
+		minWidth: '170px',
+		sortable: false,
+	},
+	{
+		title: t('knowledge.semantic.col.dataType'),
+		key: 'dataType',
+		width: '110px',
+	},
+	{
+		title: t('knowledge.semantic.col.status'),
+		key: 'status',
+		width: '100px',
+		sortable: false,
+	},
+	{
+		title: t('knowledge.semantic.col.createdTime'),
+		key: 'createdTime',
+		width: '180px',
+	},
+	{
+		title: t('knowledge.semantic.col.actions'),
+		key: 'actions',
+		width: '140px',
+		sortable: false,
+	},
+]);
 
 function formatDateTime(dateTime?: string) {
 	if (!dateTime) return '-';
 	try {
-		return new Date(dateTime).toLocaleString('zh-CN', {
+		// 日期格式跟随宿主下发的语言
+		return new Date(dateTime).toLocaleString(locale.value, {
 			year: 'numeric',
 			month: '2-digit',
 			day: '2-digit',
@@ -498,16 +560,21 @@ function editModel(model: SemanticModel) {
 function deleteModel(model: SemanticModel) {
 	if (!model.id) return;
 	showConfirm({
-		title: '删除确认',
-		message: `确定要删除语义模型「${model.businessName}」吗？此操作不可恢复。`,
-		confirmText: '确定删除',
+		title: t('knowledge.semantic.deleteConfirmTitle'),
+		message: t('knowledge.semantic.deleteConfirmMessage', {
+			name: model.businessName,
+		}),
+		confirmText: t('knowledge.semantic.deleteConfirmBtn'),
 		icon: 'mdi-delete',
 		onConfirm: async () => {
 			const ok = await deleteItem(model.id!);
 			if (ok) {
-				$tip('删除成功');
+				$tip(t('knowledge.semantic.deleteSuccess'));
 			} else {
-				$tip('删除失败', { color: 'error', icon: 'mdi-alert-circle' });
+				$tip(t('knowledge.semantic.deleteFailed'), {
+					color: 'error',
+					icon: 'mdi-alert-circle',
+				});
 			}
 		},
 	});
@@ -516,10 +583,13 @@ function deleteModel(model: SemanticModel) {
 function toggleStatus(model: SemanticModel, status: number) {
 	if (!model.id) return;
 	const ids = [model.id];
+	const actionKey = status === 1 ? 'enable' : 'disable';
 	showConfirm({
-		title: `${status === 1 ? '启用' : '停用'}确认`,
-		message: `确定要${status === 1 ? '启用' : '停用'}语义模型「${model.businessName}」吗？`,
-		confirmText: '确认',
+		title: t(`knowledge.semantic.${actionKey}ConfirmTitle`),
+		message: t(`knowledge.semantic.${actionKey}ConfirmMessage`, {
+			name: model.businessName,
+		}),
+		confirmText: t('knowledge.semantic.confirmBtn'),
 		onConfirm: async () => {
 			let result = false;
 			if (status === 1) {
@@ -529,9 +599,9 @@ function toggleStatus(model: SemanticModel, status: number) {
 			}
 			if (result) {
 				model.status = status;
-				$tip(`${status === 1 ? '启用' : '停用'}成功`);
+				$tip(t(`knowledge.semantic.${actionKey}Success`));
 			} else {
-				$tip(`${status === 1 ? '启用' : '停用'}失败`, {
+				$tip(t(`knowledge.semantic.${actionKey}Failed`), {
 					color: 'error',
 					icon: 'mdi-alert-circle',
 				});
@@ -544,18 +614,25 @@ function batchDeleteModels() {
 	if (selectedModelIds.value.length === 0) return;
 	const ids = [...selectedModelIds.value];
 	showConfirm({
-		title: '批量删除确认',
-		message: `确定要删除选中的 ${ids.length} 个语义模型吗？`,
-		confirmText: '确定删除',
+		title: t('knowledge.semantic.batchDeleteConfirmTitle'),
+		message: t('knowledge.semantic.batchDeleteConfirmMessage', {
+			count: ids.length,
+		}),
+		confirmText: t('knowledge.semantic.deleteConfirmBtn'),
 		icon: 'mdi-delete',
 		onConfirm: async () => {
 			const result = await semanticModelService.batchDelete(ids);
 			if (result) {
-				$tip(`成功删除 ${ids.length} 个语义模型`);
+				$tip(
+					t('knowledge.semantic.batchDeleteSuccess', { count: ids.length }),
+				);
 				selectedModelIds.value = [];
 				await loadSemanticModels();
 			} else {
-				$tip('批量删除失败', { color: 'error', icon: 'mdi-alert-circle' });
+				$tip(t('knowledge.semantic.batchDeleteFailed'), {
+					color: 'error',
+					icon: 'mdi-alert-circle',
+				});
 			}
 		},
 	});
@@ -579,27 +656,39 @@ async function saveModel() {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const ok = await saveItem(createData as any, updateData, currentEditId.value);
 	if (ok) {
-		$tip(isEdit.value ? '更新成功' : '创建成功');
+		$tip(
+			isEdit.value
+				? t('knowledge.semantic.updateSuccess')
+				: t('knowledge.semantic.createSuccess'),
+		);
 	} else {
-		$tip(`${isEdit.value ? '更新' : '创建'}失败`, {
-			color: 'error',
-			icon: 'mdi-alert-circle',
-		});
+		$tip(
+			isEdit.value
+				? t('knowledge.semantic.updateFailed')
+				: t('knowledge.semantic.createFailed'),
+			{
+				color: 'error',
+				icon: 'mdi-alert-circle',
+			},
+		);
 	}
 }
 
 async function downloadExcelTemplate() {
 	try {
 		await semanticModelService.downloadTemplate();
-		$tip('模板下载成功');
+		$tip(t('knowledge.semantic.templateDownloadSuccess'));
 	} catch {
-		$tip('模板下载失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('knowledge.semantic.templateDownloadFailed'), {
+			color: 'error',
+			icon: 'mdi-alert-circle',
+		});
 	}
 }
 
 async function executeExcelImport() {
 	if (!importFile.value) {
-		$tip('请先选择 Excel 文件', { color: 'warning' });
+		$tip(t('knowledge.semantic.selectFileFirst'), { color: 'warning' });
 		return;
 	}
 	importLoading.value = true;
@@ -609,16 +698,27 @@ async function executeExcelImport() {
 			agentId.value,
 		);
 		$tip(
-			`导入完成：成功 ${result.successCount} 条，失败 ${result.failCount} 条`,
+			t('knowledge.semantic.importDone', {
+				success: result.successCount,
+				fail: result.failCount,
+			}),
 		);
 		if (result.errors?.length) {
-			$tip(`部分失败：${result.errors[0]}`, { color: 'warning' });
+			$tip(
+				t('knowledge.semantic.importPartialFail', {
+					error: result.errors[0],
+				}),
+				{ color: 'warning' },
+			);
 		}
 		batchImportDialogVisible.value = false;
 		importFile.value = null;
 		await loadSemanticModels();
 	} catch {
-		$tip('Excel 导入失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('knowledge.semantic.importFailed'), {
+			color: 'error',
+			icon: 'mdi-alert-circle',
+		});
 	} finally {
 		importLoading.value = false;
 	}
@@ -634,4 +734,25 @@ function openBatchImportDialog() {
 onMounted(() => loadSemanticModels());
 </script>
 
-<style scoped></style>
+<style scoped>
+/* 原 bg-white：浅色仍是 #ffffff，深色跟随面板色 */
+.refresh-btn {
+	background-color: var(--da-surface);
+}
+
+/* 原 color="blue-lighten-5"：浅色是近似的淡蓝底，深色下改用半透明主色保证可读 */
+.count-chip {
+	background-color: var(--da-primary-soft);
+	color: var(--da-primary-text);
+}
+
+/* 原 text-grey-darken-2：浅色视觉等价，深色下提高亮度 */
+.form-label {
+	color: var(--da-text-muted);
+}
+
+/* 覆盖 main.css 里写死的 .search-field 边框色，浅色值完全一致 */
+.search-field :deep(.v-field__outline) {
+	--v-field-border-color: var(--da-border);
+}
+</style>

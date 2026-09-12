@@ -20,16 +20,16 @@
 			<div class="d-flex align-center justify-space-between mb-4">
 				<div class="d-flex align-center">
 					<v-icon size="20" class="mr-2 text-primary">mdi-table-cog</v-icon>
-					<span class="text-subtitle-1 font-weight-bold">数据表管理</span>
+					<span class="text-subtitle-1 font-weight-bold">{{ t('dataSource.tableManagement') }}</span>
 					<span class="text-caption text-medium-emphasis ml-4">
-						已选择 {{ selectedTables.length }} 个表
+						{{ t('dataSource.selectedCount', { count: selectedTables.length }) }}
 					</span>
 				</div>
 				<div class="ga-2 d-flex">
-					<v-btn variant="text" size="small" @click="selectAll">全选</v-btn>
-					<v-btn variant="text" size="small" @click="clearAll">清空</v-btn>
+					<v-btn variant="text" size="small" @click="selectAll">{{ t('dataSource.selectAll') }}</v-btn>
+					<v-btn variant="text" size="small" @click="clearAll">{{ t('dataSource.clearAll') }}</v-btn>
 					<v-btn color="primary" size="small" elevation="0" class="px-4" :loading="updating" @click="$emit('update-tables')">
-						更新数据表
+						{{ t('dataSource.updateTables') }}
 					</v-btn>
 				</div>
 			</div>
@@ -38,8 +38,8 @@
 			<v-text-field
 				v-if="!loadingTables && !fetchError && allTables.length > 0"
 				v-model="searchQuery"
-				label="搜索数据表"
-				placeholder="输入表名"
+				:label="t('dataSource.searchTablesLabel')"
+				:placeholder="t('dataSource.searchTablesPlaceholder')"
 				prepend-inner-icon="mdi-magnify"
 				variant="outlined"
 				density="compact"
@@ -60,9 +60,9 @@
 
 			<div v-else-if="fetchError" class="empty-state error-state">
 				<v-icon size="48" color="error" class="mb-3">mdi-database-off-outline</v-icon>
-				<p class="text-body-2 text-medium-emphasis mb-3">数据获取失败</p>
-				<p class="text-caption text-medium-emphasis mb-4">无法拉取数据表列表，请检查连接后重试</p>
-				<v-btn color="primary" variant="outlined" size="small" @click="$emit('retry')">重试</v-btn>
+				<p class="text-body-2 text-medium-emphasis mb-3">{{ t('dataSource.fetchFailed') }}</p>
+				<p class="text-caption text-medium-emphasis mb-4">{{ t('dataSource.fetchFailedHint') }}</p>
+				<v-btn color="primary" variant="outlined" size="small" @click="$emit('retry')">{{ t('dataSource.retry') }}</v-btn>
 			</div>
 
 			<div v-else-if="filteredTables.length > 0" class="table-grid">
@@ -79,13 +79,13 @@
 			</div>
 
 			<div v-if="!loadingTables && !fetchError && allTables.length > 0 && filteredTables.length === 0" class="empty-state">
-				<v-icon size="40" color="grey" class="mb-2">mdi-table-search</v-icon>
-				<p class="text-body-2 text-medium-emphasis">没有匹配“{{ searchQuery.trim() }}”的数据表</p>
+				<v-icon size="40" color="var(--da-text-faint)" class="mb-2">mdi-table-search</v-icon>
+				<p class="text-body-2 text-medium-emphasis">{{ t('dataSource.noMatchedTables', { keyword: searchQuery.trim() }) }}</p>
 			</div>
 
 			<div v-if="!loadingTables && !fetchError && allTables.length === 0" class="empty-state">
-				<v-icon size="40" color="grey" class="mb-2">mdi-table-off</v-icon>
-				<p class="text-body-2 text-medium-emphasis">暂无表数据，请确保数据源连接正常后刷新</p>
+				<v-icon size="40" color="var(--da-text-faint)" class="mb-2">mdi-table-off</v-icon>
+				<p class="text-body-2 text-medium-emphasis">{{ t('dataSource.noTableData') }}</p>
 			</div>
 		</div>
 	</div>
@@ -93,6 +93,8 @@
 
 <script setup lang="ts">
 import { filterTableNames } from '../../../utils/tableSearch';
+
+const { t } = useI18n();
 
 const selectedTables = defineModel<string[]>('selectedTables', { default: () => [] });
 const searchQuery = ref('');
@@ -126,9 +128,9 @@ function clearAll() {
 
 <style scoped>
 .manage-tables-container {
-	background: white;
+	background: var(--da-surface);
 	border-radius: 12px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 	padding: 24px;
 }

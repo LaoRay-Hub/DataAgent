@@ -79,19 +79,19 @@ const cssVars = computed(() => ({
 	width: 100%;
 	height: 100vh;
 	overflow: hidden;
-	background-color: #f8fafc;
+	background-color: var(--da-surface-soft);
 }
 
 .base-drawer__left {
 	width: var(--drawer-width);
 	height: 100%;
-	background-color: #1e293b;
-	color: #e2e8f0;
+	background-color: var(--da-sidebar-bg);
+	color: var(--da-sidebar-text);
 	transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
-	border-right: 1px solid rgba(255, 255, 255, 0.05);
+	border-right: 1px solid var(--da-sidebar-border);
 	flex-shrink: 0;
 	white-space: nowrap;
 }
@@ -110,8 +110,8 @@ const cssVars = computed(() => ({
 
 .base-drawer__header {
 	height: 56px;
-	border-bottom: 1px solid #e2e8f0;
-	background-color: #ffffff;
+	border-bottom: 1px solid var(--da-border);
+	background-color: var(--da-surface);
 	display: flex;
 	align-items: center;
 	padding: 0 16px;
@@ -129,7 +129,7 @@ const cssVars = computed(() => ({
 		position: absolute;
 		inset: 0 auto 0 0;
 		z-index: 100;
-		box-shadow: 8px 0 24px rgba(15, 23, 42, 0.2);
+		box-shadow: 8px 0 24px var(--da-shadow);
 	}
 
 	.base-drawer__left--closed {

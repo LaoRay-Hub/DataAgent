@@ -17,19 +17,19 @@
 <template>
 	<section class="page-shell">
 		<KnowledgePageHeader
-			title="提示词配置"
-			subtitle="维护增强式提示词配置，支持多配置启用、批量操作与优先级管理。"
+			:title="t('promptConfig.title')"
+			:subtitle="t('promptConfig.subtitle')"
 		>
 			<template #actions>
 				<v-btn
-					class="text-none bg-white"
-					style="border-color: #e2e8f0"
+					class="text-none refresh-btn"
+					style="border-color: var(--da-border)"
 					variant="outlined"
 					prepend-icon="mdi-refresh"
 					:loading="loading"
 					@click="loadConfigs"
 				>
-					刷新
+					{{ t('promptConfig.refresh') }}
 				</v-btn>
 				<v-btn
 					v-if="selectedIds.length > 0"
@@ -39,7 +39,7 @@
 					elevation="0"
 					@click="batchEnable"
 				>
-					批量启用
+					{{ t('promptConfig.batchEnable') }}
 				</v-btn>
 				<v-btn
 					v-if="selectedIds.length > 0"
@@ -49,7 +49,7 @@
 					elevation="0"
 					@click="batchDisable"
 				>
-					批量禁用
+					{{ t('promptConfig.batchDisable') }}
 				</v-btn>
 				<v-btn
 					color="blue-darken-3"
@@ -58,7 +58,7 @@
 					elevation="0"
 					@click="openCreateDialog"
 				>
-					添加配置
+					{{ t('promptConfig.addConfig') }}
 				</v-btn>
 			</template>
 		</KnowledgePageHeader>
@@ -68,7 +68,7 @@
 				<v-select
 					v-model="selectedAgentId"
 					:items="agentOptions"
-					label="智能体"
+					:label="t('promptConfig.filterAgent')"
 					item-title="title"
 					item-value="value"
 					variant="outlined"
@@ -80,7 +80,7 @@
 				<v-select
 					v-model="promptType"
 					:items="promptTypeOptions"
-					label="提示词类型"
+					:label="t('promptConfig.filterPromptType')"
 					item-title="title"
 					item-value="value"
 					variant="outlined"
@@ -91,7 +91,7 @@
 				/>
 				<v-text-field
 					v-model="searchKeyword"
-					placeholder="搜索名称、描述、内容"
+					:placeholder="t('promptConfig.searchPlaceholder')"
 					prepend-inner-icon="mdi-magnify"
 					variant="outlined"
 					density="compact"
@@ -101,12 +101,8 @@
 					style="max-width: 320px"
 				/>
 				<v-spacer />
-				<v-chip
-					color="blue-lighten-5"
-					variant="flat"
-					class="font-weight-medium"
-				>
-					{{ filteredConfigs.length }} 条
+				<v-chip variant="flat" class="font-weight-medium count-chip">
+					{{ t('promptConfig.recordCount', { count: filteredConfigs.length }) }}
 				</v-chip>
 			</div>
 		</v-card>
@@ -166,11 +162,15 @@
 				<!-- eslint-disable-next-line vue/valid-v-slot -->
 				<template #item.enabled="{ item }">
 					<v-chip
-						:color="item.enabled ? 'success' : 'grey'"
+						:color="item.enabled ? 'success' : 'var(--da-text-muted)'"
 						size="small"
 						variant="tonal"
 					>
-						{{ item.enabled ? '启用' : '禁用' }}
+						{{
+							item.enabled
+								? t('promptConfig.statusEnabled')
+								: t('promptConfig.statusDisabled')
+						}}
 					</v-chip>
 				</template>
 
@@ -180,7 +180,7 @@
 						<v-btn
 							size="small"
 							variant="text"
-							color="blue-darken-1"
+							color="var(--da-primary-text)"
 							icon="mdi-pencil"
 							@click="editConfig(item)"
 						/>
@@ -199,7 +199,9 @@
 							@click="toggleEnabled(item)"
 						>
 							<v-tooltip activator="parent" location="top">{{
-								item.enabled ? '禁用' : '启用'
+								item.enabled
+									? t('promptConfig.actionDisable')
+									: t('promptConfig.actionEnable')
 							}}</v-tooltip>
 						</v-btn>
 						<v-btn
@@ -220,9 +222,11 @@
 							color="blue-lighten-3"
 							class="mb-4"
 						/>
-						<p class="text-body-1 text-medium-emphasis mb-2">暂无提示词配置</p>
-						<p class="text-body-2 text-disabled mb-6">
-							点击「添加配置」开始创建增强提示词
+						<p class="text-body-1 text-medium-emphasis mb-2">
+							{{ t('promptConfig.emptyTitle') }}
+						</p>
+						<p class="text-body-2 mb-6" style="color: var(--da-text-muted)">
+							{{ t('promptConfig.emptyHint') }}
 						</p>
 						<v-btn
 							color="blue-darken-3"
@@ -231,7 +235,7 @@
 							elevation="0"
 							@click="openCreateDialog"
 						>
-							添加配置
+							{{ t('promptConfig.addConfig') }}
 						</v-btn>
 					</div>
 				</template>
@@ -248,7 +252,9 @@
 						size="28"
 					/>
 					<span class="text-h6 font-weight-bold">{{
-						isEdit ? '编辑提示词配置' : '添加提示词配置'
+						isEdit
+							? t('promptConfig.dialogEditTitle')
+							: t('promptConfig.dialogCreateTitle')
 					}}</span>
 					<v-spacer />
 					<v-btn
@@ -263,50 +269,52 @@
 				<v-card-text class="pa-6">
 					<v-form ref="formRef">
 						<div class="mb-4">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-								配置名称 <span class="text-error">*</span>
+							<p class="text-body-2 font-weight-medium form-label mb-2">
+								{{ t('promptConfig.fieldName') }}
+								<span class="text-error">*</span>
 							</p>
 							<v-text-field
 								v-model="formData.name"
-								placeholder="请输入配置名称"
+								:placeholder="t('promptConfig.namePlaceholder')"
 								variant="outlined"
 								density="compact"
-								:rules="[(v) => !!v?.trim() || '配置名称不能为空']"
+								:rules="[(v) => !!v?.trim() || t('promptConfig.nameRequired')]"
 								hide-details="auto"
 							/>
 						</div>
 						<div class="mb-4">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-								配置描述
+							<p class="text-body-2 font-weight-medium form-label mb-2">
+								{{ t('promptConfig.fieldDescription') }}
 							</p>
 							<v-text-field
 								v-model="formData.description"
-								placeholder="请输入配置描述"
+								:placeholder="t('promptConfig.descriptionPlaceholder')"
 								variant="outlined"
 								density="compact"
 								hide-details="auto"
 							/>
 						</div>
 						<div class="mb-4">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-								优化提示词内容 <span class="text-error">*</span>
+							<p class="text-body-2 font-weight-medium form-label mb-2">
+								{{ t('promptConfig.fieldOptimizationPrompt') }}
+								<span class="text-error">*</span>
 							</p>
 							<v-textarea
 								v-model="formData.optimizationPrompt"
-								placeholder="请输入优化提示词内容，支持模板变量"
+								:placeholder="t('promptConfig.optimizationPromptPlaceholder')"
 								variant="outlined"
 								density="compact"
 								rows="5"
-								:rules="[(v) => !!v?.trim() || '优化提示词不能为空']"
+								:rules="[
+									(v) => !!v?.trim() || t('promptConfig.optimizationPromptRequired'),
+								]"
 								hide-details="auto"
 							/>
 						</div>
 						<v-row>
 							<v-col cols="12" md="6">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									优先级
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('promptConfig.fieldPriority') }}
 								</p>
 								<v-text-field
 									v-model.number="formData.priority"
@@ -319,10 +327,8 @@
 								/>
 							</v-col>
 							<v-col cols="12" md="6">
-								<p
-									class="text-body-2 font-weight-medium text-grey-darken-2 mb-2"
-								>
-									显示顺序
+								<p class="text-body-2 font-weight-medium form-label mb-2">
+									{{ t('promptConfig.fieldDisplayOrder') }}
 								</p>
 								<v-text-field
 									v-model.number="formData.displayOrder"
@@ -339,9 +345,9 @@
 
 				<v-divider />
 				<v-card-actions class="pa-4 d-flex justify-end ga-2">
-					<v-btn variant="outlined" class="text-none px-6" @click="closeDialog"
-						>取消</v-btn
-					>
+					<v-btn variant="outlined" class="text-none px-6" @click="closeDialog">{{
+						t('promptConfig.cancel')
+					}}</v-btn>
 					<v-btn
 						color="blue-darken-3"
 						class="text-none px-6"
@@ -349,7 +355,7 @@
 						:loading="saveLoading"
 						@click="saveConfig"
 					>
-						{{ isEdit ? '保存更新' : '立即创建' }}
+						{{ isEdit ? t('promptConfig.saveUpdate') : t('promptConfig.createNow') }}
 					</v-btn>
 				</v-card-actions>
 			</v-card>
@@ -364,7 +370,9 @@
 						class="mr-3"
 						size="26"
 					/>
-					<span class="text-h6 font-weight-bold">设置优先级</span>
+					<span class="text-h6 font-weight-bold">{{
+						t('promptConfig.priorityDialogTitle')
+					}}</span>
 					<v-spacer />
 					<v-btn
 						icon="mdi-close"
@@ -378,7 +386,7 @@
 					<v-text-field
 						v-model.number="priorityValue"
 						type="number"
-						label="优先级 (0-100)"
+						:label="t('promptConfig.priorityFieldLabel')"
 						min="0"
 						max="100"
 						variant="outlined"
@@ -387,18 +395,15 @@
 					/>
 				</v-card-text>
 				<v-card-actions class="pa-4 d-flex justify-end ga-2">
-					<v-btn
-						variant="outlined"
-						class="text-none"
-						@click="closePriorityDialog"
-						>取消</v-btn
-					>
+					<v-btn variant="outlined" class="text-none" @click="closePriorityDialog">{{
+						t('promptConfig.cancel')
+					}}</v-btn>
 					<v-btn
 						color="blue-darken-3"
 						class="text-none"
 						elevation="0"
 						@click="updatePriority"
-						>保存</v-btn
+						>{{ t('promptConfig.save') }}</v-btn
 					>
 				</v-card-actions>
 			</v-card>
@@ -412,6 +417,7 @@ import { promptService, type PromptConfig } from '~/services/prompt/index';
 import { useCrudPage } from '~/composables/useCrudPage/index';
 
 const route = useRoute();
+const { t } = useI18n();
 const { $tip } = useNuxtApp();
 const { showConfirm } = useConfirm();
 
@@ -427,27 +433,42 @@ const priorityValue = ref(0);
 const rawConfigs = ref<PromptConfig[]>([]);
 const agentOptions = ref<{ title: string; value: number }[]>([]);
 
-const headers = [
-	{ title: '名称', key: 'name', minWidth: '140px' },
-	{ title: '描述', key: 'description', minWidth: '160px', sortable: false },
+const headers = computed(() => [
+	{ title: t('promptConfig.headerName'), key: 'name', minWidth: '140px' },
 	{
-		title: '优化提示词',
+		title: t('promptConfig.headerDescription'),
+		key: 'description',
+		minWidth: '160px',
+		sortable: false,
+	},
+	{
+		title: t('promptConfig.headerOptimizationPrompt'),
 		key: 'optimizationPrompt',
 		minWidth: '240px',
 		sortable: false,
 	},
-	{ title: '优先级', key: 'priority', width: '90px' },
-	{ title: '顺序', key: 'displayOrder', width: '90px' },
-	{ title: '状态', key: 'enabled', width: '100px', sortable: false },
-	{ title: '操作', key: 'actions', width: '170px', sortable: false },
-];
+	{ title: t('promptConfig.headerPriority'), key: 'priority', width: '90px' },
+	{ title: t('promptConfig.headerDisplayOrder'), key: 'displayOrder', width: '90px' },
+	{
+		title: t('promptConfig.headerStatus'),
+		key: 'enabled',
+		width: '100px',
+		sortable: false,
+	},
+	{
+		title: t('promptConfig.headerActions'),
+		key: 'actions',
+		width: '170px',
+		sortable: false,
+	},
+]);
 
-const promptTypeOptions = [
-	{ title: '报表生成', value: 'report-generator' },
-	{ title: '任务规划', value: 'planner' },
-	{ title: 'SQL 生成', value: 'sql-generator' },
-	{ title: '通用问答', value: 'general-chat' },
-];
+const promptTypeOptions = computed(() => [
+	{ title: t('promptConfig.typeReportGenerator'), value: 'report-generator' },
+	{ title: t('promptConfig.typePlanner'), value: 'planner' },
+	{ title: t('promptConfig.typeSqlGenerator'), value: 'sql-generator' },
+	{ title: t('promptConfig.typeGeneralChat'), value: 'general-chat' },
+]);
 
 const filteredConfigs = computed(() => {
 	const keyword = searchKeyword.value.trim().toLowerCase();
@@ -512,7 +533,10 @@ async function loadConfigs() {
 		});
 		selectedIds.value = [];
 	} catch {
-		$tip('加载提示词配置失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('promptConfig.loadFailed'), {
+			color: 'error',
+			icon: 'mdi-alert-circle',
+		});
 	} finally {
 		loading.value = false;
 	}
@@ -577,21 +601,35 @@ async function saveConfig() {
 		};
 		const result = await promptService.save(payload);
 		if (!result.success) {
-			$tip(result.message || `${isEdit.value ? '更新' : '创建'}失败`, {
-				color: 'error',
-				icon: 'mdi-alert-circle',
-			});
+			$tip(
+				result.message ||
+					(isEdit.value
+						? t('promptConfig.updateFailed')
+						: t('promptConfig.createFailed')),
+				{
+					color: 'error',
+					icon: 'mdi-alert-circle',
+				},
+			);
 			return;
 		}
-		$tip(result.message || `${isEdit.value ? '更新' : '创建'}成功`);
+		$tip(
+			result.message ||
+				(isEdit.value
+					? t('promptConfig.updateSuccess')
+					: t('promptConfig.createSuccess')),
+		);
 		dialogVisible.value = false;
 		resetFormData();
 		await loadConfigs();
 	} catch {
-		$tip(`${isEdit.value ? '更新' : '创建'}失败`, {
-			color: 'error',
-			icon: 'mdi-alert-circle',
-		});
+		$tip(
+			isEdit.value ? t('promptConfig.updateFailed') : t('promptConfig.createFailed'),
+			{
+				color: 'error',
+				icon: 'mdi-alert-circle',
+			},
+		);
 	} finally {
 		saveLoading.value = false;
 	}
@@ -601,21 +639,36 @@ function toggleEnabled(config: PromptConfig) {
 	if (!config.id) return;
 	const toEnable = !config.enabled;
 	showConfirm({
-		title: `${toEnable ? '启用' : '禁用'}确认`,
-		message: `确定要${toEnable ? '启用' : '禁用'}配置「${config.name}」吗？`,
-		confirmText: '确认',
+		title: toEnable
+			? t('promptConfig.enableConfirmTitle')
+			: t('promptConfig.disableConfirmTitle'),
+		message: toEnable
+			? t('promptConfig.enableConfirmMessage', { name: config.name })
+			: t('promptConfig.disableConfirmMessage', { name: config.name }),
+		confirmText: t('promptConfig.confirm'),
 		onConfirm: async () => {
 			const result = toEnable
 				? await promptService.enable(config.id!)
 				: await promptService.disable(config.id!);
 			if (result.success) {
-				$tip(result.message || `${toEnable ? '启用' : '禁用'}成功`);
+				$tip(
+					result.message ||
+						(toEnable
+							? t('promptConfig.enableSuccess')
+							: t('promptConfig.disableSuccess')),
+				);
 				await loadConfigs();
 			} else {
-				$tip(result.message || `${toEnable ? '启用' : '禁用'}失败`, {
-					color: 'error',
-					icon: 'mdi-alert-circle',
-				});
+				$tip(
+					result.message ||
+						(toEnable
+							? t('promptConfig.enableFailed')
+							: t('promptConfig.disableFailed')),
+					{
+						color: 'error',
+						icon: 'mdi-alert-circle',
+					},
+				);
 			}
 		},
 	});
@@ -624,17 +677,17 @@ function toggleEnabled(config: PromptConfig) {
 function deleteConfig(config: PromptConfig) {
 	if (!config.id) return;
 	showConfirm({
-		title: '删除确认',
-		message: `确定要删除配置「${config.name}」吗？此操作不可恢复。`,
-		confirmText: '确定删除',
+		title: t('promptConfig.deleteConfirmTitle'),
+		message: t('promptConfig.deleteConfirmMessage', { name: config.name }),
+		confirmText: t('promptConfig.deleteConfirmText'),
 		icon: 'mdi-delete',
 		onConfirm: async () => {
 			const result = await promptService.delete(config.id!);
 			if (result.success) {
-				$tip(result.message || '删除成功');
+				$tip(result.message || t('promptConfig.deleteSuccess'));
 				await loadConfigs();
 			} else {
-				$tip(result.message || '删除失败', {
+				$tip(result.message || t('promptConfig.deleteFailed'), {
 					color: 'error',
 					icon: 'mdi-alert-circle',
 				});
@@ -646,16 +699,18 @@ function deleteConfig(config: PromptConfig) {
 function batchEnable() {
 	if (selectedIds.value.length === 0) return;
 	showConfirm({
-		title: '批量启用确认',
-		message: `确定要启用选中的 ${selectedIds.value.length} 条配置吗？`,
-		confirmText: '确认启用',
+		title: t('promptConfig.batchEnableConfirmTitle'),
+		message: t('promptConfig.batchEnableConfirmMessage', {
+			count: selectedIds.value.length,
+		}),
+		confirmText: t('promptConfig.batchEnableConfirmText'),
 		onConfirm: async () => {
 			const result = await promptService.batchEnable(selectedIds.value);
 			if (result.success) {
-				$tip(result.message || '批量启用成功');
+				$tip(result.message || t('promptConfig.batchEnableSuccess'));
 				await loadConfigs();
 			} else {
-				$tip(result.message || '批量启用失败', {
+				$tip(result.message || t('promptConfig.batchEnableFailed'), {
 					color: 'error',
 					icon: 'mdi-alert-circle',
 				});
@@ -667,16 +722,18 @@ function batchEnable() {
 function batchDisable() {
 	if (selectedIds.value.length === 0) return;
 	showConfirm({
-		title: '批量禁用确认',
-		message: `确定要禁用选中的 ${selectedIds.value.length} 条配置吗？`,
-		confirmText: '确认禁用',
+		title: t('promptConfig.batchDisableConfirmTitle'),
+		message: t('promptConfig.batchDisableConfirmMessage', {
+			count: selectedIds.value.length,
+		}),
+		confirmText: t('promptConfig.batchDisableConfirmText'),
 		onConfirm: async () => {
 			const result = await promptService.batchDisable(selectedIds.value);
 			if (result.success) {
-				$tip(result.message || '批量禁用成功');
+				$tip(result.message || t('promptConfig.batchDisableSuccess'));
 				await loadConfigs();
 			} else {
-				$tip(result.message || '批量禁用失败', {
+				$tip(result.message || t('promptConfig.batchDisableFailed'), {
 					color: 'error',
 					icon: 'mdi-alert-circle',
 				});
@@ -706,17 +763,20 @@ async function updatePriority() {
 			priorityValue.value,
 		);
 		if (result.success) {
-			$tip(result.message || '优先级更新成功');
+			$tip(result.message || t('promptConfig.priorityUpdateSuccess'));
 			closePriorityDialog();
 			await loadConfigs();
 		} else {
-			$tip(result.message || '优先级更新失败', {
+			$tip(result.message || t('promptConfig.priorityUpdateFailed'), {
 				color: 'error',
 				icon: 'mdi-alert-circle',
 			});
 		}
 	} catch {
-		$tip('优先级更新失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('promptConfig.priorityUpdateFailed'), {
+			color: 'error',
+			icon: 'mdi-alert-circle',
+		});
 	}
 }
 
@@ -740,10 +800,34 @@ onMounted(async () => {
 	try {
 		await resolveAgent();
 	} catch {
-		$tip('加载智能体列表失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('promptConfig.loadAgentsFailed'), {
+			color: 'error',
+			icon: 'mdi-alert-circle',
+		});
 	}
 	await loadConfigs();
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+/* 原 bg-white：浅色仍是 #ffffff，深色跟随面板色 */
+.refresh-btn {
+	background-color: var(--da-surface);
+}
+
+/* 原 color="blue-lighten-5"：浅色是近似的淡蓝底，深色下改用半透明主色保证可读 */
+.count-chip {
+	background-color: var(--da-primary-soft);
+	color: var(--da-primary-text);
+}
+
+/* 原 text-grey-darken-2：浅色视觉等价，深色下提高亮度 */
+.form-label {
+	color: var(--da-text-muted);
+}
+
+/* 覆盖 main.css 里写死的 .search-field 边框色，浅色值完全一致 */
+.search-field :deep(.v-field__outline) {
+	--v-field-border-color: var(--da-border);
+}
+</style>

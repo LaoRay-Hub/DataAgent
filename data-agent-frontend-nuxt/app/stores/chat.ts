@@ -35,6 +35,7 @@ import datasourceService, {
 } from '~/services/datasource/index';
 import { resolveActiveDatasource } from '~/utils/datasourceSelection';
 import { applyReportContent } from '~/utils/reportTimeline';
+import { translate } from '../composables/useI18n';
 
 export type Datasource = BaseDatasource & { isActive?: boolean };
 
@@ -469,7 +470,7 @@ export const useChatStore = defineStore('chat', () => {
 				const errorMsg: ChatMessage = {
 					sessionId,
 					role: 'assistant',
-					content: error.message || '请求失败，请检查网络连接并重试。',
+					content: error.message || translate('chat.requestFailed'),
 					messageType: 'error',
 				};
 				await chatService
@@ -563,7 +564,7 @@ export const useChatStore = defineStore('chat', () => {
 		const warningMsg: ChatMessage = {
 			sessionId,
 			role: 'assistant',
-			content: '用户已终止本次对话。',
+			content: translate('chat.abortedByUser'),
 			messageType: 'warning',
 		};
 		await chatService

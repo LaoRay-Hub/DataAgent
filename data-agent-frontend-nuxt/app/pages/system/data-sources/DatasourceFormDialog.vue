@@ -18,7 +18,7 @@
 	<v-dialog :model-value="modelValue" max-width="800" persistent @update:model-value="$emit('update:modelValue', $event)">
 		<v-card rounded="xl" class="pa-2">
 			<v-card-title class="d-flex align-center justify-space-between px-4 pt-4">
-				<span class="text-h6 font-weight-bold">{{ isEdit ? '编辑数据源' : '添加数据源' }}</span>
+				<span class="text-h6 font-weight-bold">{{ isEdit ? t('dataSource.editDatasource') : t('dataSource.addDatasource') }}</span>
 				<v-btn icon="mdi-close" variant="text" size="small" @click="$emit('update:modelValue', false)" />
 			</v-card-title>
 
@@ -26,56 +26,56 @@
 				<v-form ref="formRef" v-model="formValid">
 					<v-row dense>
 						<v-col cols="12" md="6">
-							<span class="custom-label">数据源名称 *</span>
-							<v-text-field v-model="form.name" placeholder="请输入名称" variant="outlined" density="compact" :rules="[rules.required]" />
+							<span class="custom-label">{{ t('dataSource.fieldName') }} *</span>
+							<v-text-field v-model="form.name" :placeholder="t('dataSource.placeholderName')" variant="outlined" density="compact" :rules="[rules.required]" />
 						</v-col>
 						<v-col cols="12" md="6">
-							<span class="custom-label">数据库类型 *</span>
+							<span class="custom-label">{{ t('dataSource.fieldType') }} *</span>
 							<v-select v-model="form.type" :items="['mysql', 'postgresql', 'sqlserver', 'dameng', 'oracle']" variant="outlined" density="compact" :rules="[rules.required]" />
 						</v-col>
 
 						<v-col cols="12" md="8">
-							<span class="custom-label">主机地址 *</span>
-							<v-text-field v-model="form.host" placeholder="localhost 或 IP 地址" variant="outlined" density="compact" :rules="[rules.required]" />
+							<span class="custom-label">{{ t('dataSource.fieldHost') }} *</span>
+							<v-text-field v-model="form.host" :placeholder="t('dataSource.placeholderHost')" variant="outlined" density="compact" :rules="[rules.required]" />
 						</v-col>
 						<v-col cols="12" md="4">
-							<span class="custom-label">端口号 *</span>
+							<span class="custom-label">{{ t('dataSource.fieldPort') }} *</span>
 							<v-text-field v-model.number="form.port" type="number" variant="outlined" density="compact" :rules="[rules.required]" />
 						</v-col>
 
 						<v-col cols="12" :md="['postgresql', 'oracle'].includes(form.type || '') ? 6 : 12">
-							<span class="custom-label">数据库名 *</span>
-							<v-text-field v-model="form.databaseName" placeholder="Database Name" variant="outlined" density="compact" :rules="[rules.required]" />
+							<span class="custom-label">{{ t('dataSource.fieldDatabaseName') }} *</span>
+							<v-text-field v-model="form.databaseName" :placeholder="t('dataSource.placeholderDatabaseName')" variant="outlined" density="compact" :rules="[rules.required]" />
 						</v-col>
 						<v-col v-if="['postgresql', 'oracle'].includes(form.type || '')" cols="12" md="6">
-							<span class="custom-label">Schema 名</span>
-							<v-text-field v-model="form.schemaName" placeholder="如 public" variant="outlined" density="compact" />
+							<span class="custom-label">{{ t('dataSource.fieldSchemaName') }}</span>
+							<v-text-field v-model="form.schemaName" :placeholder="t('dataSource.placeholderSchemaName')" variant="outlined" density="compact" />
 						</v-col>
 
 						<v-col cols="12">
-							<span class="custom-label">JDBC 连接地址 (可选)</span>
-							<v-text-field v-model="form.connectionUrl" placeholder="若不填则自动生成" variant="outlined" density="compact" />
+							<span class="custom-label">{{ t('dataSource.fieldConnectionUrl') }}</span>
+							<v-text-field v-model="form.connectionUrl" :placeholder="t('dataSource.placeholderConnectionUrl')" variant="outlined" density="compact" />
 						</v-col>
 
 						<v-col cols="12" md="6">
-							<span class="custom-label">用户名 *</span>
-							<v-text-field v-model="form.username" placeholder="Username" variant="outlined" density="compact" :rules="[rules.required]" />
+							<span class="custom-label">{{ t('dataSource.fieldUsername') }} *</span>
+							<v-text-field v-model="form.username" :placeholder="t('dataSource.placeholderUsername')" variant="outlined" density="compact" :rules="[rules.required]" />
 						</v-col>
 						<v-col cols="12" md="6">
-							<span class="custom-label">密码 *</span>
-							<v-text-field v-model="form.password" type="password" placeholder="Password" variant="outlined" density="compact" :rules="[rules.required]" />
+							<span class="custom-label">{{ t('dataSource.fieldPassword') }} *</span>
+							<v-text-field v-model="form.password" type="password" :placeholder="t('dataSource.placeholderPassword')" variant="outlined" density="compact" :rules="[rules.required]" />
 						</v-col>
 
 						<v-col cols="12">
-							<span class="custom-label">描述信息</span>
-							<v-textarea v-model="form.description" rows="2" placeholder="可选描述" variant="outlined" density="compact" />
+							<span class="custom-label">{{ t('dataSource.fieldDescription') }}</span>
+							<v-textarea v-model="form.description" rows="2" :placeholder="t('dataSource.placeholderDescription')" variant="outlined" density="compact" />
 						</v-col>
 					</v-row>
 				</v-form>
 				<div class="d-flex justify-end mt-4 ga-3">
-					<v-btn variant="text" class="text-none" @click="$emit('update:modelValue', false)">取消</v-btn>
+					<v-btn variant="text" class="text-none" @click="$emit('update:modelValue', false)">{{ t('dataSource.cancel') }}</v-btn>
 					<v-btn color="primary" class="text-none px-8" elevation="0" :loading="saving" @click="handleSubmit">
-						{{ isEdit ? '保存' : '创建' }}
+						{{ isEdit ? t('dataSource.save') : t('dataSource.create') }}
 					</v-btn>
 				</div>
 			</v-card-text>
@@ -99,6 +99,8 @@ const emit = defineEmits<{
 	submit: [data: Datasource];
 }>();
 
+const { t } = useI18n();
+
 const formRef = ref<VForm | null>(null);
 const formValid = ref(false);
 
@@ -110,7 +112,10 @@ const defaultForm = (): Datasource => ({
 
 const form = reactive<Datasource>(defaultForm());
 
-const rules = { required: (v: unknown) => !!v || '此项必填' };
+// 用 computed 包一层，切语言后校验提示才会跟着更新
+const rules = computed(() => ({
+	required: (v: unknown) => !!v || t('dataSource.ruleRequired'),
+}));
 
 watch(() => props.modelValue, (visible) => {
 	if (!visible) return;
@@ -127,3 +132,10 @@ async function handleSubmit() {
 	emit('submit', { ...form });
 }
 </script>
+
+<style scoped>
+/* 全局 .custom-label 固定 #64748b，深色下对比度不足；此处用主题变量覆盖，浅色值完全一致 */
+.custom-label {
+	color: var(--da-text-muted);
+}
+</style>

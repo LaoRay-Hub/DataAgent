@@ -25,14 +25,14 @@
 			<v-card-actions>
 				<v-spacer></v-spacer>
 				<v-btn
-					text="取消"
+					:text="t('ui.cancel')"
 					variant="plain"
 					@click="$emit('update:modelValue', false)"
 				></v-btn>
 				<!-- 子组件传入事件 -->
 				<v-btn
 					color="primary"
-					:text="confirmText"
+					:text="confirmLabel"
 					variant="tonal"
 					@click="
 						$emit('confirm');
@@ -58,14 +58,18 @@ interface Props {
 	message: string;
 	/** 标题前的图标 */
 	prependIcon?: string;
-	/** 确认按钮的文字 */
+	/** 确认按钮的文字，缺省时按当前语言取「确认」 */
 	confirmText?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
 	prependIcon: 'mdi-help-circle',
-	confirmText: '确认',
+	confirmText: undefined,
 });
+
+const { t } = useI18n();
+
+const confirmLabel = computed(() => props.confirmText || t('ui.confirm'));
 
 defineEmits<{
 	/** 更新显示状态 */

@@ -22,12 +22,12 @@
 				<v-icon size="18" color="blue" class="mr-1"
 					>mdi-rocket-launch-outline</v-icon
 				>
-				任务开始
+				{{ t('chat.taskStarted') }}
 			</v-card-title>
 			<v-btn
 				variant="outlined"
 				size="x-small"
-				color="grey"
+				color="var(--da-text-muted)"
 				class="toggle-all-btn"
 				:prepend-icon="
 					allExpanded
@@ -36,7 +36,7 @@
 				"
 				@click="toggleAll"
 			>
-				{{ allExpanded ? '折叠全部' : '展开全部' }}
+				{{ allExpanded ? t('chat.collapseAll') : t('chat.expandAll') }}
 			</v-btn>
 		</div>
 
@@ -53,13 +53,13 @@
 					<div class="step-header-left">
 						<span class="step-label">{{ step.label }}</span>
 						<span v-if="step.status === 'active'" class="step-badge active">
-							<span class="badge-dot" />进行中
+							<span class="badge-dot" />{{ t('chat.statusRunning') }}
 						</span>
-						<span v-else-if="step.status === 'done'" class="step-badge done"
-							>完成</span
-						>
+						<span v-else-if="step.status === 'done'" class="step-badge done">{{
+							t('chat.statusDone')
+						}}</span>
 					</div>
-					<v-icon size="16" color="#94a3b8">
+					<v-icon size="16" color="var(--da-text-faint)">
 						{{ step.expanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
 					</v-icon>
 				</div>
@@ -76,10 +76,10 @@
 							<v-icon size="14" color="#16a34a" class="mr-1"
 								>mdi-file-chart-outline</v-icon
 							>
-							<span v-if="step.status === 'active'"
-								>正在生成报告，内容在下方实时展示...</span
-							>
-							<span v-else>报告已生成完毕，查看下方报告卡片</span>
+							<span v-if="step.status === 'active'">{{
+								t('chat.reportStreaming')
+							}}</span>
+							<span v-else>{{ t('chat.reportReady') }}</span>
 						</div>
 						<!-- Preserve typed code inside mixed status/code output. -->
 						<div v-else-if="step.contentBlock.length" class="timeline-content">
@@ -127,6 +127,7 @@ import {
 } from '~/utils/workflowTimeline';
 
 const store = useChatStore();
+const { t } = useI18n();
 
 const props = withDefaults(
 	defineProps<{
@@ -168,95 +169,98 @@ function getDefaultExpanded(nodeName: string): boolean {
 
 interface NodeDef {
 	nodeName: string;
-	label: string;
+	labelKey: string;
 	icon: string;
 }
 
 const NODE_LABEL_MAP: Record<string, NodeDef> = {
 	IntentRecognitionNode: {
 		nodeName: 'IntentRecognitionNode',
-		label: '意图识别',
+		labelKey: 'chat.node.intentRecognition',
 		icon: 'mdi-magnify',
 	},
 	QueryEnhanceNode: {
 		nodeName: 'QueryEnhanceNode',
-		label: '查询增强',
+		labelKey: 'chat.node.queryEnhance',
 		icon: 'mdi-text-search',
 	},
 	SchemaRecallNode: {
 		nodeName: 'SchemaRecallNode',
-		label: 'Schema 召回',
+		labelKey: 'chat.node.schemaRecall',
 		icon: 'mdi-database-search',
 	},
 	FeasibilityAssessmentNode: {
 		nodeName: 'FeasibilityAssessmentNode',
-		label: '可行性评估',
+		labelKey: 'chat.node.feasibilityAssessment',
 		icon: 'mdi-check-circle-outline',
 	},
 	EvidenceRecallNode: {
 		nodeName: 'EvidenceRecallNode',
-		label: '证据召回',
+		labelKey: 'chat.node.evidenceRecall',
 		icon: 'mdi-file-search-outline',
 	},
 	TableRelationNode: {
 		nodeName: 'TableRelationNode',
-		label: '表关系分析',
+		labelKey: 'chat.node.tableRelation',
 		icon: 'mdi-table-network',
 	},
 	PlannerNode: {
 		nodeName: 'PlannerNode',
-		label: '制定计划',
+		labelKey: 'chat.node.planner',
 		icon: 'mdi-clipboard-list-outline',
 	},
 	HumanFeedbackNode: {
 		nodeName: 'HumanFeedbackNode',
-		label: '人工反馈',
+		labelKey: 'chat.node.humanFeedback',
 		icon: 'mdi-account-check-outline',
 	},
 	PlanExecutorNode: {
 		nodeName: 'PlanExecutorNode',
-		label: '执行计划',
+		labelKey: 'chat.node.planExecutor',
 		icon: 'mdi-play-circle-outline',
 	},
 	SqlGenerateNode: {
 		nodeName: 'SqlGenerateNode',
-		label: 'SQL 生成',
+		labelKey: 'chat.node.sqlGenerate',
 		icon: 'mdi-code-braces',
 	},
 	SemanticConsistencyNode: {
 		nodeName: 'SemanticConsistencyNode',
-		label: '语义一致性校验',
+		labelKey: 'chat.node.semanticConsistency',
 		icon: 'mdi-check-decagram',
 	},
 	SqlExecuteNode: {
 		nodeName: 'SqlExecuteNode',
-		label: 'SQL 执行',
+		labelKey: 'chat.node.sqlExecute',
 		icon: 'mdi-database-arrow-right',
 	},
 	PythonGenerateNode: {
 		nodeName: 'PythonGenerateNode',
-		label: 'Python 生成',
+		labelKey: 'chat.node.pythonGenerate',
 		icon: 'mdi-language-python',
 	},
 	PythonAnalyzeNode: {
 		nodeName: 'PythonAnalyzeNode',
-		label: 'Python 分析',
+		labelKey: 'chat.node.pythonAnalyze',
 		icon: 'mdi-chart-line',
 	},
 	PythonExecuteNode: {
 		nodeName: 'PythonExecuteNode',
-		label: 'Python 执行',
+		labelKey: 'chat.node.pythonExecute',
 		icon: 'mdi-play-outline',
 	},
 	ReportGeneratorNode: {
 		nodeName: 'ReportGeneratorNode',
-		label: '报告生成',
+		labelKey: 'chat.node.reportGenerator',
 		icon: 'mdi-file-chart-outline',
 	},
 };
 
-interface TimelineStep extends NodeDef {
+interface TimelineStep {
 	stepId: string;
+	nodeName: string;
+	label: string;
+	icon: string;
 	attempt: number;
 	status: 'pending' | 'active' | 'done';
 	contentBlock: GraphNodeResponse[];
@@ -272,11 +276,8 @@ const timelineSteps = computed<TimelineStep[]>(() => {
 
 	return groups.map((group, idx) => {
 		const { nodeName, stepId, attempt, items: block } = group;
-		const def = NODE_LABEL_MAP[nodeName] || {
-			nodeName,
-			label: nodeName,
-			icon: 'mdi-lightning-bolt',
-		};
+		const def = NODE_LABEL_MAP[nodeName];
+		const baseLabel = def ? t(def.labelKey) : nodeName;
 		const contentBlock = block.filter(
 			(item) => item.textType !== TextType.RESULT_SET,
 		);
@@ -293,10 +294,14 @@ const timelineSteps = computed<TimelineStep[]>(() => {
 		}
 
 		return {
-			...def,
 			stepId,
+			nodeName,
+			label:
+				attempt > 1
+					? t('chat.retryStep', { label: baseLabel, attempt })
+					: baseLabel,
+			icon: def?.icon || 'mdi-lightning-bolt',
 			attempt,
-			label: attempt > 1 ? `${def.label}（第 ${attempt} 次）` : def.label,
 			status,
 			contentBlock,
 			resultSetText,
@@ -439,7 +444,7 @@ watch(
 .timeline-title {
 	font-size: 15px !important;
 	font-weight: 700;
-	color: #2563eb;
+	color: var(--da-primary-heading);
 	display: flex;
 	align-items: center;
 	line-height: 1;
@@ -470,7 +475,7 @@ watch(
 .step-label {
 	font-size: 13px;
 	font-weight: 600;
-	color: #1e293b;
+	color: var(--da-text-strong);
 }
 
 /* ── Badge ───────────────────────────────────────────────────────────────────── */
@@ -484,19 +489,19 @@ watch(
 }
 
 .step-badge.active {
-	background: #dbeafe;
-	color: #1d4ed8;
+	background: var(--da-primary-tint);
+	color: var(--da-primary-text);
 }
 
 .step-badge.done {
-	background: #dcfce7;
-	color: #15803d;
+	background: var(--da-success-soft);
+	color: var(--da-success-text);
 }
 
 .badge-dot {
 	width: 5px;
 	height: 5px;
-	background: #2563eb;
+	background: var(--da-primary-strong);
 	border-radius: 50%;
 	animation: dotBlink 1s infinite;
 }
@@ -516,7 +521,7 @@ watch(
 	margin-top: 6px;
 	font-size: 13px;
 	line-height: 1.65;
-	color: #1e293b;
+	color: var(--da-text-strong);
 	min-width: 0;
 	overflow: hidden;
 }
@@ -527,26 +532,26 @@ watch(
 }
 
 .is-muted .text-body {
-	color: #94a3b8;
+	color: var(--da-text-faint);
 	font-style: italic;
 }
 
 .report-body {
-	color: #1e293b !important;
+	color: var(--da-text-strong) !important;
 	font-style: normal !important;
 }
 
 .report-brief {
 	display: flex;
 	align-items: center;
-	color: #64748b !important;
+	color: var(--da-text-muted) !important;
 	font-style: normal !important;
 	font-size: 12.5px;
 }
 
 :deep(.tl-code) {
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
+	background: var(--da-surface-soft);
+	border: 1px solid var(--da-border);
 	border-radius: 8px;
 	padding: 10px 12px;
 	font-size: 12.5px;
@@ -579,12 +584,12 @@ watch(
 	margin-bottom: 6px;
 }
 .md-body :deep(code:not(pre code)) {
-	background: #f6f8fa;
-	border: 1px solid #e1e4e8;
+	background: var(--da-code-bg);
+	border: 1px solid var(--da-border-soft);
 	padding: 1px 5px;
 	border-radius: 3px;
 	font-size: 12px;
-	color: #e83e8c;
+	color: var(--da-accent);
 }
 .md-body :deep(table) {
 	width: 100%;
@@ -601,42 +606,42 @@ watch(
 }
 .md-body :deep(tr) {
 	display: table-row;
-	border-top: 1px solid #c6cbd1;
+	border-top: 1px solid var(--da-border-strong);
 }
 .md-body :deep(th) {
 	display: table-cell;
-	background: #f1f5f9;
+	background: var(--da-surface-mute);
 	padding: 6px 10px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	font-weight: 600;
 	font-size: 12px;
 }
 .md-body :deep(td) {
 	display: table-cell;
 	padding: 6px 10px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	font-size: 12px;
 }
 
 /* ── Code block with header ─────────────────────────────────────────────────── */
 .md-body :deep(.code-block-wrapper) {
 	margin: 8px 0;
-	border: 1px solid #e1e4e8;
+	border: 1px solid var(--da-border-soft);
 	border-radius: 6px;
 	overflow: auto;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 }
 .md-body :deep(.code-block-header) {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 	padding: 4px 10px;
-	border-bottom: 1px solid #e1e4e8;
+	border-bottom: 1px solid var(--da-border-soft);
 	font-size: 11px;
 }
 .md-body :deep(.code-language) {
-	color: #6a737d;
+	color: var(--da-code-label);
 	font-weight: 600;
 	font-family: 'Monaco', 'Menlo', monospace;
 	font-size: 10px;
@@ -644,29 +649,29 @@ watch(
 }
 .md-body :deep(.code-copy-button) {
 	background: transparent;
-	border: 1px solid #d1d5da;
+	border: 1px solid var(--da-border-strong);
 	padding: 2px 8px;
 	border-radius: 4px;
 	font-size: 10px;
 	cursor: pointer;
 	transition: all 0.2s;
-	color: #24292e;
+	color: var(--da-text);
 }
 .md-body :deep(.code-copy-button:hover) {
-	background: #f3f4f6;
-	border-color: #c6cbd1;
+	background: var(--da-surface-alt);
+	border-color: var(--da-border-strong);
 }
 .md-body :deep(.code-copy-button.copied) {
-	background: #28a745;
-	border-color: #28a745;
-	color: white;
+	background: var(--da-success);
+	border-color: var(--da-success);
+	color: var(--da-text-on-dark);
 }
 .md-body :deep(pre.hljs) {
 	margin: 0;
 	padding: 8px 10px;
 	overflow-x: auto;
 	overflow-y: hidden;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 	font-size: 11px;
 	line-height: 1.35;
 	white-space: pre;

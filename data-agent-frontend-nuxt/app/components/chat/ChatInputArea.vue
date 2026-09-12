@@ -27,9 +27,9 @@
 						:class="{ disabled: store.isStreaming }"
 						@click="toggleDsMenu"
 					>
-						<v-icon size="13" color="#64748b">mdi-database-outline</v-icon>
-						<span>{{ store.activeDatasource?.name || '选择数据库' }}</span>
-						<v-icon size="13" color="#94a3b8">{{ showDsMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+						<v-icon size="13" color="var(--da-text-muted)">mdi-database-outline</v-icon>
+						<span>{{ store.activeDatasource?.name || t('chat.selectDatasource') }}</span>
+						<v-icon size="13" color="var(--da-text-faint)">{{ showDsMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
 					</div>
 					<div v-if="showDsMenu" class="chip-dropdown">
 						<div
@@ -52,9 +52,9 @@
 						:class="{ disabled: store.isStreaming || store.chatModels.length === 0 }"
 						@click="toggleModelMenu"
 					>
-						<v-icon size="13" color="#3b82f6">mdi-lightning-bolt</v-icon>
-						<span>{{ store.activeModelConfig?.modelName || '选择AI模型' }}</span>
-						<v-icon size="13" color="#94a3b8">{{ showModelMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+						<v-icon size="13" color="var(--da-primary)">mdi-lightning-bolt</v-icon>
+						<span>{{ store.activeModelConfig?.modelName || t('chat.selectModel') }}</span>
+						<v-icon size="13" color="var(--da-text-faint)">{{ showModelMenu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
 					</div>
 					<div v-if="showModelMenu" class="chip-dropdown">
 						<div
@@ -80,7 +80,7 @@
 				v-model="inputText"
 				class="chat-textarea"
 				:disabled="store.isStreaming || store.showHumanFeedback"
-				placeholder="在这里提问，例如：'分析上月各产品的销售增长情况'..."
+				:placeholder="t('chat.inputPlaceholder')"
 				rows="3"
 				@keydown.enter.exact.prevent="handleSend"
 				@input="autoResize"
@@ -99,7 +99,7 @@
 							class="hidden-checkbox"
 						/>
 						<v-icon size="11">mdi-account-check-outline</v-icon>
-						人工反馈
+						{{ t('chat.humanFeedback') }}
 					</label>
 					<label class="option-chip" :class="{ active: store.requestOptions.nl2sqlOnly }">
 						<input
@@ -110,7 +110,7 @@
 							@change="onNl2sqlChange"
 						/>
 						<v-icon size="11">mdi-database-search-outline</v-icon>
-						仅NL2SQL
+						{{ t('chat.nl2sqlOnly') }}
 					</label>
 					<label class="option-chip" :class="{ active: store.requestOptions.showSqlResults }">
 						<input
@@ -120,7 +120,7 @@
 							class="hidden-checkbox"
 						/>
 						<v-icon size="11">mdi-table-eye</v-icon>
-						显示SQL结果
+						{{ t('chat.showSqlResults') }}
 					</label>
 				</div>
 			</div>
@@ -132,12 +132,12 @@
 					:disabled="!inputText.trim() || store.showHumanFeedback"
 					@click="handleSend"
 				>
-					发送
+					{{ t('chat.send') }}
 					<v-icon size="16" class="ml-1">mdi-arrow-right</v-icon>
 				</v-btn>
 				<v-btn v-else class="stop-btn" @click="handleStop">
-					<v-icon size="16" color="white">mdi-stop</v-icon>
-					停止
+					<v-icon size="16" color="var(--da-text-on-dark)">mdi-stop</v-icon>
+					{{ t('chat.stop') }}
 				</v-btn>
 			</div>
 		</div>
@@ -147,20 +147,20 @@
 			<div v-if="store.showHumanFeedback" class="human-feedback-panel">
 				<div class="feedback-header">
 					<v-icon color="warning" size="16" class="mr-1">mdi-account-question-outline</v-icon>
-					<span>请确认执行计划</span>
+					<span>{{ t('chat.confirmPlan') }}</span>
 				</div>
 				<textarea
 					v-model="store.feedbackContent"
 					class="feedback-textarea"
 					rows="2"
-					placeholder="输入您的反馈意见（留空表示接受计划）"
+					:placeholder="t('chat.feedbackPlaceholder')"
 				/>
 				<div class="feedback-actions">
 					<v-btn class="feedback-btn feedback-btn--accept" @click="store.submitFeedback(false, store.feedbackContent)">
-						<v-icon size="14" class="mr-1">mdi-check</v-icon>接受计划
+						<v-icon size="14" class="mr-1">mdi-check</v-icon>{{ t('chat.acceptPlan') }}
 					</v-btn>
 					<v-btn class="feedback-btn feedback-btn--reject" @click="store.submitFeedback(true, store.feedbackContent)">
-						<v-icon size="14" class="mr-1">mdi-close</v-icon>拒绝重规划
+						<v-icon size="14" class="mr-1">mdi-close</v-icon>{{ t('chat.rejectReplan') }}
 					</v-btn>
 				</div>
 			</div>
@@ -172,6 +172,7 @@
 import { useChatStore } from '~/stores/chat';
 
 const store = useChatStore();
+const { t } = useI18n();
 const inputText = ref('');
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const showDsMenu = ref(false);
@@ -250,8 +251,8 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 <style scoped>
 .input-area {
 	flex-shrink: 0;
-	background: white;
-	border-top: 1px solid #e8edf2;
+	background: var(--da-surface);
+	border-top: 1px solid var(--da-border-mute);
 	padding: 12px 32px 16px;
 }
 
@@ -275,30 +276,30 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	align-items: center;
 	gap: 5px;
 	padding: 4px 10px;
-	background: #f1f5f9;
-	border: 1px solid #e2e8f0;
+	background: var(--da-surface-mute);
+	border: 1px solid var(--da-border);
 	border-radius: 20px;
 	font-size: 12.5px;
-	color: #475569;
+	color: var(--da-text-secondary);
 	cursor: pointer;
 	user-select: none;
 	white-space: nowrap;
 	transition: border-color 0.1s, background 0.1s;
 }
 .status-chip:hover:not(.disabled) {
-	border-color: #94a3b8;
+	border-color: var(--da-text-faint);
 }
 .status-chip.disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
 }
 .status-chip--model {
-	background: #eff6ff;
-	border-color: #bfdbfe;
-	color: #1d4ed8;
+	background: var(--da-primary-soft);
+	border-color: var(--da-primary-border);
+	color: var(--da-primary-text);
 }
 .status-chip--model:hover:not(.disabled) {
-	border-color: #93c5fd;
+	border-color: var(--da-primary-lighter);
 }
 
 .chip-dropdown {
@@ -306,10 +307,10 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	top: calc(100% + 4px);
 	left: 0;
 	z-index: 999;
-	background: white;
-	border: 1px solid #e2e8f0;
+	background: var(--da-surface);
+	border: 1px solid var(--da-border);
 	border-radius: 10px;
-	box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+	box-shadow: 0 4px 16px var(--da-shadow-soft);
 	min-width: 200px;
 	max-width: 300px;
 	max-height: 280px;
@@ -324,16 +325,16 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	gap: 8px;
 	padding: 7px 14px;
 	font-size: 13px;
-	color: #334155;
+	color: var(--da-text-body);
 	cursor: pointer;
 	transition: background 0.1s;
 }
 .chip-dropdown-item:hover {
-	background: #f1f5f9;
+	background: var(--da-surface-mute);
 }
 .chip-dropdown-item.active {
-	background: #eff6ff;
-	color: #2563eb;
+	background: var(--da-primary-soft);
+	color: var(--da-primary-heading);
 	font-weight: 500;
 }
 .item-name {
@@ -345,23 +346,23 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 .item-tag {
 	flex-shrink: 0;
 	font-size: 11px;
-	color: #94a3b8;
-	background: #f1f5f9;
+	color: var(--da-text-faint);
+	background: var(--da-surface-mute);
 	border-radius: 4px;
 	padding: 1px 5px;
 }
 
 /* ── Textarea ────────────────────────────────────────────────────────────────── */
 .textarea-wrap {
-	background: #f8fafc;
-	border: 1.5px solid #e2e8f0;
+	background: var(--da-surface-soft);
+	border: 1.5px solid var(--da-border);
 	border-radius: 14px;
 	overflow: hidden;
 	transition: border-color 0.15s;
 }
 .textarea-wrap:focus-within {
-	border-color: #3b82f6;
-	background: #fff;
+	border-color: var(--da-primary);
+	background: var(--da-surface);
 }
 .chat-textarea {
 	display: block;
@@ -373,13 +374,13 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	resize: vertical;
 	font-size: 14.5px;
 	line-height: 1.6;
-	color: #1e293b;
+	color: var(--da-text-strong);
 	font-family: inherit;
 	min-height: 80px;
 	max-height: 300px;
 }
 .chat-textarea::placeholder {
-	color: #94a3b8;
+	color: var(--da-text-faint);
 }
 .chat-textarea:disabled {
 	opacity: 0.6;
@@ -411,23 +412,23 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	align-items: center;
 	gap: 4px;
 	padding: 3px 10px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
+	background: var(--da-surface-soft);
+	border: 1px solid var(--da-border);
 	border-radius: 16px;
 	font-size: 12px;
-	color: #64748b;
+	color: var(--da-text-muted);
 	cursor: pointer;
 	transition: border-color 0.1s, background 0.1s;
 	user-select: none;
 }
 .option-chip:hover {
-	border-color: #3b82f6;
-	color: #3b82f6;
+	border-color: var(--da-primary);
+	color: var(--da-primary);
 }
 .option-chip.active {
-	background: #eff6ff;
-	border-color: #3b82f6;
-	color: #2563eb;
+	background: var(--da-primary-soft);
+	border-color: var(--da-primary);
+	color: var(--da-primary-heading);
 }
 .hidden-checkbox {
 	position: absolute;
@@ -442,8 +443,8 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	align-items: center;
 	gap: 8px;
 	padding: 10px 24px;
-	background: #2563eb;
-	color: white;
+	background: var(--da-primary-strong);
+	color: var(--da-text-on-dark);
 	border: none;
 	border-radius: 24px;
 	font-size: 14px;
@@ -453,7 +454,7 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	white-space: nowrap;
 }
 .send-btn:hover:not(:disabled) {
-	background: #1d4ed8;
+	background: var(--da-primary-deep);
 }
 .send-btn:disabled {
 	opacity: 0.4;
@@ -469,8 +470,8 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	align-items: center;
 	gap: 6px;
 	padding: 10px 20px;
-	background: #ef4444;
-	color: white;
+	background: var(--da-danger);
+	color: var(--da-text-on-dark);
 	border: none;
 	border-radius: 24px;
 	font-size: 14px;
@@ -479,14 +480,14 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	transition: background 0.15s;
 }
 .stop-btn:hover {
-	background: #dc2626;
+	background: var(--da-danger-strong);
 }
 
 /* ── Human feedback ──────────────────────────────────────────────────────────── */
 .human-feedback-panel {
 	margin-top: 10px;
-	background: #fffbeb;
-	border: 1px solid #fde68a;
+	background: var(--da-warning-soft);
+	border: 1px solid var(--da-warning-border);
 	border-radius: 10px;
 	padding: 12px 14px;
 }
@@ -495,19 +496,19 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 	align-items: center;
 	font-size: 13px;
 	font-weight: 600;
-	color: #92400e;
+	color: var(--da-warning-text-strong);
 	margin-bottom: 8px;
 }
 .feedback-textarea {
 	width: 100%;
-	background: white;
-	border: 1px solid #fde68a;
+	background: var(--da-surface);
+	border: 1px solid var(--da-warning-border);
 	border-radius: 6px;
 	padding: 8px 10px;
 	font-size: 13px;
 	resize: none;
 	outline: none;
-	color: #1e293b;
+	color: var(--da-text-strong);
 	font-family: inherit;
 	margin-bottom: 8px;
 }
@@ -528,12 +529,12 @@ onUnmounted(() => document.removeEventListener('click', closeMenus));
 }
 .feedback-btn--accept {
 	background: #22c55e;
-	color: white;
+	color: var(--da-text-on-dark);
 }
 .feedback-btn--reject {
-	background: white;
-	color: #ef4444;
-	border: 1px solid #ef4444;
+	background: var(--da-surface);
+	color: var(--da-danger);
+	border: 1px solid var(--da-danger);
 }
 .feedback-btn:hover {
 	opacity: 0.85;

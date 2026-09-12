@@ -23,14 +23,14 @@
 		<div class="chat-sidebar">
 			<!-- Header -->
 			<div class="sidebar-header">
-				<span class="sidebar-title">历史会话</span>
+				<span class="sidebar-title">{{ t('chat.history') }}</span>
 				<v-btn
 					icon
 					variant="text"
 					density="compact"
 					size="small"
 					class="toggle-btn"
-					title="折叠侧边栏"
+					:title="t('chat.collapseSidebar')"
 					@click="store.chatSidebarCollapsed = true"
 				>
 					<v-icon size="18">mdi-chevron-left</v-icon>
@@ -39,7 +39,7 @@
 
 			<!-- Session List -->
 			<div class="session-list custom-scrollbar">
-				<div class="session-group-label">最近任务</div>
+				<div class="session-group-label">{{ t('chat.recentTasks') }}</div>
 
 				<div
 					v-for="session in store.sessions"
@@ -61,7 +61,7 @@
 					<template v-else>
 						<div class="session-item-info" @dblclick.stop="startEdit(session)">
 							<span class="session-item-title">{{
-								session.title || '新会话'
+								session.title || t('chat.untitledSession')
 							}}</span>
 							<span class="session-item-time">{{
 								formatTime(session.createTime || session.updateTime) || '—'
@@ -74,7 +74,7 @@
 								density="compact"
 								size="x-small"
 								class="action-btn--edit"
-								title="重命名"
+								:title="t('chat.rename')"
 								@click.stop="startEdit(session)"
 							>
 								<v-icon size="14">mdi-pencil-outline</v-icon>
@@ -85,10 +85,10 @@
 								density="compact"
 								size="x-small"
 								class="action-btn--star"
-								title="收藏"
+								:title="t('chat.favorite')"
 								@click.stop="handlePin(session)"
 							>
-								<v-icon size="14" :color="session.isPinned ? '#f59e0b' : ''">
+								<v-icon size="14" :color="session.isPinned ? 'var(--da-warning)' : ''">
 									{{ session.isPinned ? 'mdi-star' : 'mdi-star-outline' }}
 								</v-icon>
 							</v-btn>
@@ -98,7 +98,7 @@
 								density="compact"
 								size="x-small"
 								class="action-btn--danger"
-								title="删除"
+								:title="t('chat.delete')"
 								@click.stop="handleDelete(session)"
 							>
 								<v-icon size="14">mdi-delete-outline</v-icon>
@@ -108,7 +108,7 @@
 				</div>
 
 				<div v-if="store.sessions.length === 0" class="empty-sessions">
-					暂无历史会话
+					{{ t('chat.emptyHistory') }}
 				</div>
 			</div>
 
@@ -122,7 +122,7 @@
 					class="new-session-btn"
 					@click="handleCreateNewSession"
 				>
-					新建分析会话
+					{{ t('chat.newAnalysisSession') }}
 				</v-btn>
 			</div>
 		</div>
@@ -135,7 +135,7 @@
 			color="primary"
 			size="small"
 			class="expand-fab"
-			title="展开历史会话"
+			:title="t('chat.expandHistory')"
 			@click="store.chatSidebarCollapsed = false"
 		>
 			<v-icon size="18">mdi-chevron-right</v-icon>
@@ -145,12 +145,12 @@
 	<!-- Confirm Dialog -->
 	<v-dialog v-model="showDeleteConfirm" max-width="360">
 		<v-card rounded="xl">
-			<v-card-title class="text-subtitle-1 font-weight-bold pa-5 pb-2"
-				>删除会话</v-card-title
-			>
-			<v-card-text class="px-5 text-body-2 text-medium-emphasis"
-				>确定要删除这个会话吗？</v-card-text
-			>
+			<v-card-title class="text-subtitle-1 font-weight-bold pa-5 pb-2">{{
+				t('chat.deleteSession')
+			}}</v-card-title>
+			<v-card-text class="px-5 text-body-2 text-medium-emphasis">{{
+				t('chat.deleteSessionConfirm')
+			}}</v-card-text>
 			<v-card-actions class="px-5 pb-4 gap-2">
 				<v-spacer />
 				<v-btn
@@ -158,7 +158,7 @@
 					size="small"
 					class="text-none"
 					@click="showDeleteConfirm = false"
-					>取消</v-btn
+					>{{ t('chat.cancel') }}</v-btn
 				>
 				<v-btn
 					color="error"
@@ -166,7 +166,7 @@
 					size="small"
 					class="text-none"
 					@click="confirmDelete"
-					>确定</v-btn
+					>{{ t('chat.confirm') }}</v-btn
 				>
 			</v-card-actions>
 		</v-card>
@@ -179,6 +179,7 @@ import { useChatStore, type ExtendedChatSession } from '~/stores/chat';
 import type { ChatSession } from '~/services/chat/index';
 
 const store = useChatStore();
+const { t } = useI18n();
 const showDeleteConfirm = ref(false);
 let sessionToDelete: ChatSession | null = null;
 
@@ -189,7 +190,10 @@ function formatTime(time: Date | string | undefined): string {
 	const now = new Date();
 	const isToday = d.toDateString() === now.toDateString();
 	const pad = (n: number) => String(n).padStart(2, '0');
-	if (isToday) return `今天 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+	if (isToday)
+		return t('chat.todayAt', {
+			time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+		});
 	const isThisYear = d.getFullYear() === now.getFullYear();
 	if (isThisYear)
 		return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -216,7 +220,7 @@ async function handleSelectSession(session: ChatSession) {
 
 function startEdit(session: ExtendedChatSession) {
 	session.editing = true;
-	session.editingTitle = session.title || '新会话';
+	session.editingTitle = session.title || t('chat.untitledSession');
 }
 
 function cancelEdit(session: ExtendedChatSession) {
@@ -288,8 +292,8 @@ async function confirmDelete() {
 /* ── Expanded panel ──────────────────────────────────────────────────────────── */
 .chat-sidebar {
 	width: 260px;
-	background: #f8fafc;
-	border-right: 1px solid #e8edf2;
+	background: var(--da-surface-soft);
+	border-right: 1px solid var(--da-border-mute);
 	display: flex;
 	flex-direction: column;
 	height: 100%;
@@ -308,7 +312,7 @@ async function confirmDelete() {
 	align-items: center;
 	justify-content: space-between;
 	padding: 10px 8px 10px 16px;
-	border-bottom: 1px solid #e8edf2;
+	border-bottom: 1px solid var(--da-border-mute);
 	min-height: 48px;
 	flex-shrink: 0;
 }
@@ -316,16 +320,16 @@ async function confirmDelete() {
 .sidebar-title {
 	font-size: 13px;
 	font-weight: 600;
-	color: #475569;
+	color: var(--da-text-secondary);
 	letter-spacing: 0.3px;
 	white-space: nowrap;
 }
 
 .toggle-btn {
-	color: #94a3b8 !important;
+	color: var(--da-text-faint) !important;
 }
 .toggle-btn:hover {
-	color: #3b82f6 !important;
+	color: var(--da-primary) !important;
 }
 
 /* ── Session list ────────────────────────────────────────────────────────────── */
@@ -338,7 +342,7 @@ async function confirmDelete() {
 .session-group-label {
 	font-size: 11px;
 	font-weight: 600;
-	color: #94a3b8;
+	color: var(--da-text-faint);
 	letter-spacing: 0.5px;
 	text-transform: uppercase;
 	padding: 8px 8px 6px;
@@ -356,10 +360,10 @@ async function confirmDelete() {
 	min-height: 44px;
 }
 .session-item:hover {
-	background: #e8f0fe;
+	background: var(--da-primary-wash);
 }
 .session-item.active {
-	background: #e8f0fe;
+	background: var(--da-primary-wash);
 }
 
 .session-item-info {
@@ -372,7 +376,7 @@ async function confirmDelete() {
 
 .session-item-title {
 	font-size: 13px;
-	color: #1e293b;
+	color: var(--da-text-strong);
 	line-height: 1.35;
 	white-space: nowrap;
 	overflow: hidden;
@@ -381,13 +385,13 @@ async function confirmDelete() {
 
 .session-item-time {
 	font-size: 11px;
-	color: #94a3b8;
+	color: var(--da-text-faint);
 	font-style: italic;
 	line-height: 1.2;
 }
 
 .session-item.active .session-item-title {
-	color: #1d4ed8;
+	color: var(--da-primary-text);
 	font-weight: 500;
 }
 
@@ -405,39 +409,40 @@ async function confirmDelete() {
 }
 
 .action-btn--edit:hover {
-	color: #3b82f6 !important;
+	color: var(--da-primary) !important;
 }
 .action-btn--star:hover {
-	color: #f59e0b !important;
+	color: var(--da-warning) !important;
 }
 .action-btn--danger:hover {
-	color: #ef4444 !important;
+	color: var(--da-danger) !important;
 }
 
 /* ── Rename input ────────────────────────────────────────────────────────────── */
 .session-rename-input {
 	flex: 1;
 	font-size: 13px;
-	border: 1px solid #3b82f6;
+	color: var(--da-text);
+	border: 1px solid var(--da-primary);
 	border-radius: 4px;
 	padding: 2px 6px;
 	outline: none;
 	min-width: 0;
-	background: white;
+	background: var(--da-surface);
 }
 
 /* ── Empty state ─────────────────────────────────────────────────────────────── */
 .empty-sessions {
 	text-align: center;
 	font-size: 12px;
-	color: #94a3b8;
+	color: var(--da-text-faint);
 	padding: 20px 0;
 }
 
 /* ── Bottom new session ──────────────────────────────────────────────────────── */
 .sidebar-bottom {
 	padding: 12px 16px 16px;
-	border-top: 1px solid #e8edf2;
+	border-top: 1px solid var(--da-border-mute);
 	flex-shrink: 0;
 }
 
@@ -455,7 +460,7 @@ async function confirmDelete() {
 	top: 10px;
 	left: 8px;
 	z-index: 10;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+	box-shadow: 0 2px 8px var(--da-shadow-soft) !important;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────────── */
@@ -466,11 +471,11 @@ async function confirmDelete() {
 	background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-	background: #cbd5e1;
+	background: var(--da-border-faint);
 	border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-	background: #94a3b8;
+	background: var(--da-text-faint);
 }
 
 @media (max-width: 768px) {

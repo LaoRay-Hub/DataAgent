@@ -18,9 +18,11 @@
 	<section class="page-shell">
 		<header class="d-flex align-center justify-space-between mb-8">
 			<div>
-				<h1 class="text-h4 font-weight-bold mb-1 text-slate-900">数据源配置</h1>
+				<h1 class="text-h4 font-weight-bold mb-1 page-title">
+					{{ t('dataSource.title') }}
+				</h1>
 				<p class="text-body-2 text-medium-emphasis">
-					管理全局数据库连接资源，配置连接信息与逻辑外键。
+					{{ t('dataSource.subtitle') }}
 				</p>
 			</div>
 			<div class="d-flex ga-3">
@@ -28,11 +30,11 @@
 					variant="outlined"
 					prepend-icon="mdi-refresh"
 					:loading="loading"
-					class="text-none bg-white"
-					style="border-color: #e2e8f0"
+					class="text-none"
+					style="background-color: var(--da-surface); border-color: var(--da-border)"
 					@click="fetchDatasources"
 				>
-					刷新
+					{{ t('dataSource.refresh') }}
 				</v-btn>
 				<v-btn
 					color="primary"
@@ -41,7 +43,7 @@
 					elevation="0"
 					@click="openFormDialog('create')"
 				>
-					添加数据源
+					{{ t('dataSource.addDatasource') }}
 				</v-btn>
 				<v-btn
 					v-if="agentId"
@@ -52,7 +54,11 @@
 					:loading="initStatus"
 					@click="handleInitDatasource"
 				>
-					{{ initStatus ? '初始化中...' : '初始化当前智能体数据源' }}
+					{{
+						initStatus
+							? t('dataSource.initializing')
+							: t('dataSource.initCurrentAgent')
+					}}
 				</v-btn>
 			</div>
 		</header>
@@ -68,8 +74,8 @@
 				:loading="loading"
 				:items-per-page-options="[10, 25, 50, 100]"
 				:footer-props="{
-					'items-per-page-text': '每页显示：',
-					'page-text': '{0}-{1} 共 {2} 条',
+					'items-per-page-text': t('dataSource.itemsPerPage'),
+					'page-text': t('dataSource.pageText'),
 				}"
 			>
 				<!-- eslint-disable-next-line vue/valid-v-slot -->
@@ -108,7 +114,7 @@
 				<template #item.name="{ item }">
 					<div class="d-flex align-center py-2">
 						<v-avatar
-							color="blue-lighten-5"
+							color="var(--da-primary-wash)"
 							rounded="lg"
 							size="36"
 							class="mr-3"
@@ -139,7 +145,11 @@
 						variant="flat"
 						class="px-3"
 					>
-						{{ item.status === 'active' ? '启用' : '禁用' }}
+						{{
+							item.status === 'active'
+								? t('dataSource.statusActive')
+								: t('dataSource.statusInactive')
+						}}
 					</v-chip>
 				</template>
 
@@ -148,7 +158,7 @@
 					<v-chip
 						:color="
 							item.testStatus === 'success'
-								? 'blue'
+								? 'info'
 								: item.testStatus === 'fail'
 									? 'error'
 									: 'default'
@@ -180,7 +190,11 @@
 							:disabled="activeDatasourceId === item.id"
 							@click="handleBindDatasource(item)"
 						>
-							{{ activeDatasourceId === item.id ? '当前使用中' : '设为当前' }}
+							{{
+								activeDatasourceId === item.id
+									? t('dataSource.inUse')
+									: t('dataSource.setAsCurrent')
+							}}
 						</v-btn>
 						<v-btn
 							variant="text"
@@ -190,7 +204,11 @@
 							:loading="togglingStatusId === item.id"
 							@click="handleToggleStatus(item)"
 						>
-							{{ item.status === 'active' ? '禁用' : '启用' }}
+							{{
+								item.status === 'active'
+									? t('dataSource.actionDisable')
+									: t('dataSource.actionEnable')
+							}}
 						</v-btn>
 						<v-btn
 							variant="text"
@@ -200,7 +218,7 @@
 							:loading="testingId === item.id"
 							@click="handleTestConnection(item)"
 						>
-							测试连接
+							{{ t('dataSource.testConnection') }}
 						</v-btn>
 						<v-btn
 							variant="text"
@@ -209,7 +227,7 @@
 							class="text-none font-weight-bold"
 							@click="openFkDialog(item)"
 						>
-							逻辑外键
+							{{ t('dataSource.logicalForeignKey') }}
 						</v-btn>
 						<v-btn
 							icon="mdi-pencil-outline"
@@ -230,7 +248,11 @@
 
 				<template #expanded-row="{ columns, item }">
 					<tr>
-						<td :colspan="columns.length" class="bg-grey-lighten-5 pa-0">
+						<td
+							:colspan="columns.length"
+							class="pa-0"
+							style="background-color: var(--da-surface-soft)"
+						>
 							<ExpandedTableManager
 								v-model:selected-tables="selectedTables[item.id!]"
 								:all-tables="tableLists[item.id!] ?? []"
@@ -270,6 +292,7 @@ import ForeignKeyDialog from './ForeignKeyDialog.vue';
 import ExpandedTableManager from './ExpandedTableManager.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const { showConfirm } = useConfirm();
 const { $tip } = useNuxtApp();
 
@@ -301,13 +324,23 @@ const fkDialogVisible = ref(false);
 const fkDatasourceId = ref(0);
 const fkDatasourceName = ref('');
 
-const headers = [
-	{ title: '名称', key: 'name', align: 'start' as const },
-	{ title: '类型', key: 'type', align: 'center' as const },
-	{ title: '状态', key: 'status', align: 'center' as const },
-	{ title: '连接状态', key: 'testStatus', align: 'center' as const },
-	{ title: '操作', key: 'actions', align: 'end' as const, sortable: false },
-];
+// 用 computed 包一层，切语言后表头才会跟着更新
+const headers = computed(() => [
+	{ title: t('dataSource.name'), key: 'name', align: 'start' as const },
+	{ title: t('dataSource.type'), key: 'type', align: 'center' as const },
+	{ title: t('dataSource.status'), key: 'status', align: 'center' as const },
+	{
+		title: t('dataSource.connectionStatus'),
+		key: 'testStatus',
+		align: 'center' as const,
+	},
+	{
+		title: t('dataSource.actions'),
+		key: 'actions',
+		align: 'end' as const,
+		sortable: false,
+	},
+]);
 
 function getDbIcon(type: string | undefined) {
 	if (type === 'mysql') return 'mdi-database';
@@ -317,9 +350,9 @@ function getDbIcon(type: string | undefined) {
 }
 
 function getStatusText(status: string | undefined) {
-	if (status === 'success') return '连接成功';
-	if (status === 'fail') return '连接失败';
-	return '未测试';
+	if (status === 'success') return t('dataSource.connSuccess');
+	if (status === 'fail') return t('dataSource.connFail');
+	return t('dataSource.connUntested');
 }
 
 async function fetchDatasources() {
@@ -327,7 +360,7 @@ async function fetchDatasources() {
 	try {
 		datasourceList.value = await datasourceService.getAllDatasource();
 	} catch {
-		$tip('获取数据源列表失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('dataSource.fetchListFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 	} finally {
 		loading.value = false;
 	}
@@ -360,15 +393,15 @@ async function handleFormSubmit(data: Datasource) {
 	try {
 		if (formDialogMode.value === 'create') {
 			await datasourceService.createDatasource(data);
-			$tip('创建成功');
+			$tip(t('dataSource.createSuccess'));
 		} else if (data.id) {
 			await datasourceService.updateDatasource(data.id, data);
-			$tip('更新成功');
+			$tip(t('dataSource.updateSuccess'));
 		}
 		formDialogVisible.value = false;
 		fetchDatasources();
 	} catch {
-		$tip('操作失败，请检查网络或参数', {
+		$tip(t('dataSource.operationFailedCheck'), {
 			color: 'error',
 			icon: 'mdi-alert-circle',
 		});
@@ -380,7 +413,7 @@ async function handleFormSubmit(data: Datasource) {
 async function handleBindDatasource(item: Datasource) {
 	if (!agentId.value || !item.id) return;
 	if (activeDatasourceId.value === item.id) {
-		$tip('当前已是该智能体正在使用的数据源');
+		$tip(t('dataSource.alreadyInUse'));
 		return;
 	}
 	bindingDatasourceId.value = item.id;
@@ -388,12 +421,15 @@ async function handleBindDatasource(item: Datasource) {
 		const res = await agentDatasourceService.addDatasourceToAgent(agentId.value, item.id);
 		if (res.success) {
 			activeDatasourceId.value = item.id;
-			$tip('已设为当前智能体数据源');
+			$tip(t('dataSource.setAsCurrentSuccess'));
 		} else {
-			$tip(res.message || '绑定失败', { color: 'error', icon: 'mdi-alert-circle' });
+			$tip(res.message || t('dataSource.bindFailed'), {
+				color: 'error',
+				icon: 'mdi-alert-circle',
+			});
 		}
 	} catch {
-		$tip('绑定失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('dataSource.bindFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 	} finally {
 		bindingDatasourceId.value = null;
 	}
@@ -402,23 +438,23 @@ async function handleBindDatasource(item: Datasource) {
 function handleDelete(item: Datasource) {
 	if (!item.id) return;
 	showConfirm({
-		title: '删除确认',
-		message: `确定要删除数据源「${item.name}」吗？此操作不可恢复。`,
-		confirmText: '删除',
+		title: t('dataSource.deleteConfirmTitle'),
+		message: t('dataSource.deleteConfirmMessage', { name: item.name ?? '' }),
+		confirmText: t('dataSource.delete'),
 		icon: 'mdi-alert-circle',
 		onConfirm: async () => {
 			try {
 				const res = await datasourceService.deleteDatasource(item.id!);
 				if (res.success) {
-					$tip('删除成功');
+					$tip(t('dataSource.deleteSuccess'));
 					fetchDatasources();
 				} else
-					$tip(res.message || '删除失败', {
+					$tip(res.message || t('dataSource.deleteFailed'), {
 						color: 'error',
 						icon: 'mdi-alert-circle',
 					});
 			} catch {
-				$tip('删除失败', { color: 'error', icon: 'mdi-alert-circle' });
+				$tip(t('dataSource.deleteFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 			}
 		},
 	});
@@ -434,9 +470,13 @@ async function handleToggleStatus(item: Datasource) {
 			status: newStatus,
 		});
 		item.status = newStatus;
-		$tip(newStatus === 'active' ? '已启用' : '已禁用');
+		$tip(
+			newStatus === 'active'
+				? t('dataSource.enabledTip')
+				: t('dataSource.disabledTip'),
+		);
 	} catch {
-		$tip('操作失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('dataSource.operationFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 	} finally {
 		togglingStatusId.value = null;
 	}
@@ -448,14 +488,14 @@ async function handleTestConnection(item: Datasource) {
 	try {
 		const res = await datasourceService.testConnection(item.id);
 		if (res.success) {
-			$tip('连接测试成功');
+			$tip(t('dataSource.testConnSuccess'));
 			item.testStatus = 'success';
 		} else {
-			$tip('连接测试失败', { color: 'error', icon: 'mdi-alert-circle' });
+			$tip(t('dataSource.testConnFail'), { color: 'error', icon: 'mdi-alert-circle' });
 			item.testStatus = 'fail';
 		}
 	} catch {
-		$tip('连接测试请求失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('dataSource.testConnRequestFail'), { color: 'error', icon: 'mdi-alert-circle' });
 		item.testStatus = 'fail';
 	} finally {
 		testingId.value = null;
@@ -516,17 +556,17 @@ watch(
 				return ds && (ds.testStatus ?? '') !== 'success';
 			});
 			if (hasInactive && hasConnFail)
-				$tip('请先启用数据源并测试连接成功后再展开', {
+				$tip(t('dataSource.expandNeedBoth'), {
 					color: 'error',
 					icon: 'mdi-alert-circle',
 				});
 			else if (hasInactive)
-				$tip('请先启用数据源后再展开数据表管理', {
+				$tip(t('dataSource.expandNeedActive'), {
 					color: 'error',
 					icon: 'mdi-alert-circle',
 				});
 			else
-				$tip('请先测试连接成功后再展开数据表管理', {
+				$tip(t('dataSource.expandNeedTest'), {
 					color: 'error',
 					icon: 'mdi-alert-circle',
 				});
@@ -583,9 +623,16 @@ async function updateTables(item: Datasource) {
 			tables: selectedTables.value[item.id] ?? [],
 		});
 		if (res.success) {
-			$tip(`已保存 ${selectedTables.value[item.id]?.length ?? 0} 个表`);
+			$tip(
+				t('dataSource.savedTables', {
+					count: selectedTables.value[item.id]?.length ?? 0,
+				}),
+			);
 		} else {
-			$tip(res.message || '更新失败', { color: 'error', icon: 'mdi-alert-circle' });
+			$tip(res.message || t('dataSource.updateFailed'), {
+				color: 'error',
+				icon: 'mdi-alert-circle',
+			});
 		}
 	} finally {
 		updatingTablesId.value = null;
@@ -594,7 +641,7 @@ async function updateTables(item: Datasource) {
 
 async function handleInitDatasource() {
 	if (!agentId.value) {
-		$tip('缺少智能体ID，无法初始化数据源', {
+		$tip(t('dataSource.missingAgentId'), {
 			color: 'error',
 			icon: 'mdi-alert-circle',
 		});
@@ -607,7 +654,7 @@ async function handleInitDatasource() {
 			agentId.value,
 		);
 		if (!activeRes.success || !activeRes.data) {
-			$tip('当前智能体没有绑定可用的数据源！请先绑定并启用数据源', {
+			$tip(t('dataSource.noBoundDatasource'), {
 				color: 'error',
 				icon: 'mdi-alert-circle',
 			});
@@ -619,21 +666,22 @@ async function handleInitDatasource() {
 			!activeDatasource.selectTables ||
 			activeDatasource.selectTables.length === 0
 		) {
-			$tip('当前绑定的数据源没有选择相应的数据表！请先选择数据表并更新', {
+			$tip(t('dataSource.noSelectedTables'), {
 				color: 'error',
 				icon: 'mdi-alert-circle',
 			});
 			return;
 		}
 		const res = await agentDatasourceService.initSchema(agentId.value);
-		if (res.success) $tip('初始化数据源成功');
+		if (res.success) $tip(t('dataSource.initSuccess'));
 		else
-			$tip(res.message || '初始化数据源失败', {
+			$tip(res.message || t('dataSource.initFailed'), {
 				color: 'error',
 				icon: 'mdi-alert-circle',
 			});
 	} catch (error: unknown) {
-		const errMsg = error instanceof Error ? error.message : '初始化数据源失败';
+		const errMsg =
+			error instanceof Error ? error.message : t('dataSource.initFailed');
 		$tip(errMsg, { color: 'error', icon: 'mdi-alert-circle' });
 	} finally {
 		initStatus.value = false;
@@ -647,6 +695,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 原 text-slate-900 未在全局定义，改用主题变量保证深色下标题可读 */
+.page-title {
+	color: var(--da-text);
+}
+
 .expand-disabled {
 	opacity: 0.4;
 	cursor: not-allowed;

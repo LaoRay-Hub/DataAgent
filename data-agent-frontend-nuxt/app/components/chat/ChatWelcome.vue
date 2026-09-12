@@ -31,12 +31,15 @@
 
 		<!-- Agent Name -->
 		<h2 class="welcome-title">
-			您好，我是 <span class="agent-name">{{ store.currentAgentName || '数据助手' }}</span>
+			{{ t('chat.greeting') }}
+			<span class="agent-name">{{
+				store.currentAgentName || t('chat.defaultAgentName')
+			}}</span>
 		</h2>
 
 		<!-- Agent Description -->
 		<p class="welcome-desc">
-			{{ store.currentAgentDescription || '我可以为您分析数据库中的表结构、生成 SQL 或可视化图表。' }}
+			{{ store.currentAgentDescription || t('chat.defaultAgentDescription') }}
 		</p>
 	</div>
 </template>
@@ -44,6 +47,7 @@
 <script setup lang="ts">
 import { useChatStore } from '~/stores/chat';
 const store = useChatStore();
+const { t } = useI18n();
 </script>
 
 <style scoped>
@@ -62,7 +66,7 @@ const store = useChatStore();
 }
 
 .agent-avatar {
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 4px 16px var(--da-shadow-faint);
 }
 
 .agent-avatar-emoji {
@@ -73,18 +77,18 @@ const store = useChatStore();
 .welcome-title {
 	font-size: 26px;
 	font-weight: 700;
-	color: #0f172a;
+	color: var(--da-text);
 	margin-bottom: 12px;
 	letter-spacing: -0.3px;
 }
 
 .agent-name {
-	color: #1e293b;
+	color: var(--da-text-strong);
 }
 
 .welcome-desc {
 	font-size: 14.5px;
-	color: #64748b;
+	color: var(--da-text-muted);
 	max-width: 480px;
 	line-height: 1.7;
 }

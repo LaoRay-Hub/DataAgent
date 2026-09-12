@@ -19,6 +19,7 @@
  */
 
 import axios from 'axios';
+import { translate } from '../../composables/useI18n';
 import type { ApiResponse } from '../common';
 
 /**
@@ -242,7 +243,7 @@ class AgentService {
 		if (response.data.success && response.data.data) {
 			return response.data.data;
 		}
-		throw new Error(response.data.message || '生成 API Key 失败');
+		throw new Error(response.data.message || translate('error.generateApiKeyFailed'));
 	}
 
 	/**
@@ -257,7 +258,7 @@ class AgentService {
 		if (response.data.success && response.data.data) {
 			return response.data.data;
 		}
-		throw new Error(response.data.message || '重置 API Key 失败');
+		throw new Error(response.data.message || translate('error.resetApiKeyFailed'));
 	}
 
 	/**
@@ -272,7 +273,7 @@ class AgentService {
 		if (response.data.success && response.data.data) {
 			return response.data.data;
 		}
-		throw new Error(response.data.message || '删除 API Key 失败');
+		throw new Error(response.data.message || translate('error.deleteApiKeyFailed'));
 	}
 
 	/**
@@ -295,7 +296,7 @@ class AgentService {
 		if (response.data.success && response.data.data) {
 			return response.data.data;
 		}
-		throw new Error(response.data.message || '更新 API Key 状态失败');
+		throw new Error(response.data.message || translate('error.updateApiKeyStatusFailed'));
 	}
 }
 

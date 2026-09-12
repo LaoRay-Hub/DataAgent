@@ -19,9 +19,9 @@
 		<!-- Header Section -->
 		<header class="d-flex align-center justify-space-between mb-8">
 			<div>
-				<h1 class="text-h4 font-weight-bold mb-1 text-slate-900">智能体管理</h1>
+				<h1 class="text-h4 font-weight-bold mb-1 page-title">{{ t('agentManage.pageTitle') }}</h1>
 				<p class="text-body-2 text-medium-emphasis">
-					创建和管理您的AI智能体,让数据分析更智能
+					{{ t('agentManage.pageSubtitle') }}
 				</p>
 			</div>
 			<div class="d-flex ga-3">
@@ -29,20 +29,19 @@
 					variant="outlined"
 					prepend-icon="mdi-refresh"
 					:loading="loading"
-					class="text-none"
-					style="border-color: #e2e8f0"
+					class="text-none refresh-btn"
 					@click="loadAgents"
 				>
-					刷新
+					{{ t('agentManage.refresh') }}
 				</v-btn>
 				<v-btn
-					color="black"
+					color="var(--da-text)"
 					prepend-icon="mdi-plus"
 					class="text-none px-6"
 					elevation="0"
 					@click="goToCreateAgent"
 				>
-					新建智能体
+					{{ t('agentManage.createAgent') }}
 				</v-btn>
 			</div>
 		</header>
@@ -52,7 +51,7 @@
 			<div class="d-flex flex-wrap ga-3 align-center">
 				<v-text-field
 					v-model="searchKeyword"
-					placeholder="搜索智能体名称、ID或描述..."
+					:placeholder="t('agentManage.searchPlaceholder')"
 					prepend-inner-icon="mdi-magnify"
 					variant="outlined"
 					density="compact"
@@ -74,20 +73,20 @@
 					variant="flat"
 				>
 					<v-btn value="all" variant="flat" class="px-6 text-none font-weight-medium">
-						全部智能体
-						<v-chip size="x-small" color="grey-lighten-3" class="ml-2">{{ agents.length }}</v-chip>
+						{{ t('agentManage.filterAll') }}
+						<v-chip size="x-small" variant="flat" class="ml-2 count-chip">{{ agents.length }}</v-chip>
 					</v-btn>
 					<v-btn value="published" variant="flat" class="px-6 text-none font-weight-medium">
-						已发布
-						<v-chip size="x-small" color="success-lighten-3" class="ml-2">{{ publishedCount }}</v-chip>
+						{{ t('agentManage.filterPublished') }}
+						<v-chip size="x-small" variant="flat" class="ml-2 count-chip count-chip--success">{{ publishedCount }}</v-chip>
 					</v-btn>
 					<v-btn value="draft" variant="flat" class="px-6 text-none font-weight-medium">
-						草稿
-						<v-chip size="x-small" color="warning-lighten-3" class="ml-2">{{ draftCount }}</v-chip>
+						{{ t('agentManage.filterDraft') }}
+						<v-chip size="x-small" variant="flat" class="ml-2 count-chip count-chip--warning">{{ draftCount }}</v-chip>
 					</v-btn>
 					<v-btn value="offline" variant="flat" class="px-6 text-none font-weight-medium">
-						已下线
-						<v-chip size="x-small" color="grey-lighten-3" class="ml-2">{{ offlineCount }}</v-chip>
+						{{ t('agentManage.filterOffline') }}
+						<v-chip size="x-small" variant="flat" class="ml-2 count-chip">{{ offlineCount }}</v-chip>
 					</v-btn>
 				</v-btn-toggle>
 			</div>
@@ -106,7 +105,7 @@
 				<!-- ID Column -->
 				<!-- eslint-disable-next-line vue/valid-v-slot -->
 				<template #item.id="{ item }">
-					<span class="text-body-2 font-weight-medium text-grey-darken-2">{{ item.id }}</span>
+					<span class="text-body-2 font-weight-medium cell-muted">{{ item.id }}</span>
 				</template>
 
 				<!-- Avatar + Name Column -->
@@ -119,7 +118,7 @@
 						</v-avatar>
 						<div>
 							<div class="text-subtitle-2 font-weight-bold">{{ item.name }}</div>
-							<div class="text-caption text-medium-emphasis">{{ item.category || '未分类' }}</div>
+							<div class="text-caption text-medium-emphasis">{{ item.category || t('agentManage.uncategorized') }}</div>
 						</div>
 					</div>
 				</template>
@@ -127,8 +126,8 @@
 				<!-- Description Column -->
 				<!-- eslint-disable-next-line vue/valid-v-slot -->
 				<template #item.description="{ item }">
-					<div class="text-body-2 text-grey-darken-1" style="max-width: 300px;">
-						{{ item.description || '暂无描述' }}
+					<div class="text-body-2 cell-body" style="max-width: 300px;">
+						{{ item.description || t('agentManage.noDescription') }}
 					</div>
 				</template>
 
@@ -141,7 +140,7 @@
 								v-for="(tag, index) in parseTags(item.tags).slice(0, 4)"
 								:key="index"
 								size="small"
-								color="blue"
+								color="var(--da-primary)"
 								variant="tonal"
 							>
 								{{ tag }}
@@ -154,10 +153,10 @@
 								@click="showAllTags(item)"
 							>
 								<v-icon size="16">mdi-dots-horizontal</v-icon>
-								<v-tooltip activator="parent" location="top">查看全部标签</v-tooltip>
+								<v-tooltip activator="parent" location="top">{{ t('agentManage.viewAllTags') }}</v-tooltip>
 							</v-btn>
 						</template>
-						<span v-else class="text-caption text-grey">暂无标签</span>
+						<span v-else class="text-caption cell-faint">{{ t('agentManage.noTags') }}</span>
 					</div>
 				</template>
 
@@ -172,7 +171,7 @@
 				<!-- Create Time Column -->
 				<!-- eslint-disable-next-line vue/valid-v-slot -->
 				<template #item.createTime="{ item }">
-					<span class="text-body-2 text-grey-darken-1">{{ formatTime(item.createTime) }}</span>
+					<span class="text-body-2 cell-body">{{ formatTime(item.createTime) }}</span>
 				</template>
 
 				<!-- Actions Column -->
@@ -183,11 +182,11 @@
 							icon="mdi-pencil-outline"
 							variant="text"
 							size="small"
-							color="blue-darken-1"
+							color="var(--da-primary-strong)"
 							@click="handleEdit(item)"
 						>
 							<v-icon size="20" />
-							<v-tooltip activator="parent" location="top">编辑</v-tooltip>
+							<v-tooltip activator="parent" location="top">{{ t('agentManage.edit') }}</v-tooltip>
 						</v-btn>
 						<v-btn
 							icon="mdi-delete-outline"
@@ -197,7 +196,7 @@
 							@click="handleDelete(item)"
 						>
 							<v-icon size="20" />
-							<v-tooltip activator="parent" location="top">删除</v-tooltip>
+							<v-tooltip activator="parent" location="top">{{ t('agentManage.delete') }}</v-tooltip>
 						</v-btn>
 					</div>
 				</template>
@@ -205,27 +204,27 @@
 				<!-- No Data Slot -->
 				<template #no-data>
 					<div class="text-center py-16">
-						<v-icon icon="mdi-robot-confused-outline" size="64" color="grey-lighten-2" class="mb-4" />
-						<h3 class="text-h6 font-weight-medium text-grey-darken-1">
-							{{ debouncedSearch.trim() ? '未找到匹配的智能体' : '暂无智能体' }}
+						<v-icon icon="mdi-robot-confused-outline" size="64" color="var(--da-surface-alt)" class="mb-4" />
+						<h3 class="text-h6 font-weight-medium cell-body">
+							{{ debouncedSearch.trim() ? t('agentManage.noMatchTitle') : t('agentManage.emptyTitle') }}
 						</h3>
-						<p class="text-body-2 text-grey mb-6">
+						<p class="text-body-2 cell-faint mb-6">
 							{{
 								debouncedSearch.trim()
-									? `没有与“${debouncedSearch.trim()}”匹配的结果，请调整搜索条件`
+									? t('agentManage.noMatchDesc', { keyword: debouncedSearch.trim() })
 									: activeFilter === 'all'
-										? '您还没有创建任何智能体'
-										: '该分类下暂无智能体'
+										? t('agentManage.emptyDescAll')
+										: t('agentManage.emptyDescFiltered')
 							}}
 						</p>
 						<v-btn
 							v-if="activeFilter === 'all' && !debouncedSearch.trim()"
-							color="black"
 							variant="flat"
+							class="create-agent-btn"
 							prepend-icon="mdi-plus"
 							@click="goToCreateAgent"
 						>
-							新建智能体
+							{{ t('agentManage.createAgent') }}
 						</v-btn>
 					</div>
 				</template>
@@ -242,8 +241,8 @@
 			<v-card rounded="lg">
 				<v-card-title class="d-flex align-center justify-space-between px-6 pt-6 pb-4">
 					<div class="d-flex align-center">
-						<v-icon icon="mdi-pencil-circle" color="blue-darken-1" class="mr-3" size="28" />
-						<span class="text-h6 font-weight-bold">编辑智能体</span>
+						<v-icon icon="mdi-pencil-circle" color="var(--da-primary-strong)" class="mr-3" size="28" />
+						<span class="text-h6 font-weight-bold">{{ t('agentManage.editDialogTitle') }}</span>
 					</div>
 					<v-btn icon="mdi-close" variant="text" size="small" @click="closeEditDialog" />
 				</v-card-title>
@@ -252,24 +251,24 @@
 				<v-card-text class="pa-6">
 					<v-form ref="editFormRef">
 						<div class="mb-4">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-								智能体名称 <span class="text-error">*</span>
+							<p class="text-body-2 font-weight-medium field-label mb-2">
+								{{ t('agentManage.nameLabel') }} <span class="text-error">*</span>
 							</p>
 							<v-text-field
 								v-model="editForm.name"
-								placeholder="请输入智能体名称"
+								:placeholder="t('agentManage.namePlaceholder')"
 								variant="outlined"
 								density="compact"
-								:rules="[v => !!v?.trim() || '名称不能为空']"
+								:rules="[v => !!v?.trim() || t('agentManage.nameRequired')]"
 								hide-details="auto"
 							/>
 						</div>
 
 						<div class="mb-4">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">描述</p>
+							<p class="text-body-2 font-weight-medium field-label mb-2">{{ t('agentManage.descriptionLabel') }}</p>
 							<v-textarea
 								v-model="editForm.description"
-								placeholder="请输入智能体描述"
+								:placeholder="t('agentManage.descriptionPlaceholder')"
 								variant="outlined"
 								density="compact"
 								rows="3"
@@ -278,10 +277,10 @@
 						</div>
 
 						<div class="mb-4">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">分类</p>
+							<p class="text-body-2 font-weight-medium field-label mb-2">{{ t('agentManage.categoryLabel') }}</p>
 							<v-text-field
 								v-model="editForm.category"
-								placeholder="请输入分类"
+								:placeholder="t('agentManage.categoryPlaceholder')"
 								variant="outlined"
 								density="compact"
 								hide-details
@@ -289,10 +288,10 @@
 						</div>
 
 						<div class="mb-4">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">标签 (逗号分隔)</p>
+							<p class="text-body-2 font-weight-medium field-label mb-2">{{ t('agentManage.tagsLabel') }}</p>
 							<v-text-field
 								v-model="editForm.tags"
-								placeholder="例如: 数据分析,智能助手,推荐系统"
+								:placeholder="t('agentManage.tagsPlaceholder')"
 								variant="outlined"
 								density="compact"
 								hide-details
@@ -300,7 +299,7 @@
 						</div>
 
 						<div class="mb-2">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">状态</p>
+							<p class="text-body-2 font-weight-medium field-label mb-2">{{ t('agentManage.statusLabel') }}</p>
 							<v-select
 								v-model="editForm.status"
 								:items="statusOptions"
@@ -316,15 +315,15 @@
 
 				<v-divider />
 				<v-card-actions class="pa-4 d-flex justify-end ga-2">
-					<v-btn variant="outlined" class="text-none px-6" @click="closeEditDialog">取消</v-btn>
+					<v-btn variant="outlined" class="text-none px-6" @click="closeEditDialog">{{ t('agentManage.cancel') }}</v-btn>
 					<v-btn
-						color="blue-darken-3"
+						color="var(--da-primary-heading)"
 						class="text-none px-6"
 						elevation="0"
 						:loading="saveLoading"
 						@click="saveEdit"
 					>
-						保存修改
+						{{ t('agentManage.saveChanges') }}
 					</v-btn>
 				</v-card-actions>
 			</v-card>
@@ -335,8 +334,8 @@
 			<v-card rounded="lg">
 				<v-card-title class="d-flex align-center justify-space-between px-6 pt-6 pb-4">
 					<div class="d-flex align-center">
-						<v-icon icon="mdi-tag-multiple" color="blue" class="mr-3" size="24" />
-						<span class="text-h6 font-weight-bold">全部标签</span>
+						<v-icon icon="mdi-tag-multiple" color="var(--da-primary)" class="mr-3" size="24" />
+						<span class="text-h6 font-weight-bold">{{ t('agentManage.allTagsTitle') }}</span>
 					</div>
 					<v-btn icon="mdi-close" variant="text" size="small" @click="tagsDialog = false" />
 				</v-card-title>
@@ -348,20 +347,20 @@
 							v-for="(tag, index) in currentTags"
 							:key="index"
 							size="default"
-							color="blue"
+							color="var(--da-primary)"
 							variant="tonal"
 						>
 							{{ tag }}
 						</v-chip>
-						<div v-if="currentTags.length === 0" class="text-body-2 text-grey text-center w-100 py-4">
-							暂无标签
+						<div v-if="currentTags.length === 0" class="text-body-2 cell-faint text-center w-100 py-4">
+							{{ t('agentManage.noTags') }}
 						</div>
 					</div>
 				</v-card-text>
 
 				<v-divider />
 				<v-card-actions class="pa-4 d-flex justify-end">
-					<v-btn variant="text" class="text-none" @click="tagsDialog = false">关闭</v-btn>
+					<v-btn variant="text" class="text-none" @click="tagsDialog = false">{{ t('agentManage.close') }}</v-btn>
 				</v-card-actions>
 			</v-card>
 		</v-dialog>
@@ -376,6 +375,7 @@ import { useCrudPage } from '~/composables/useCrudPage/index';
 const { $tip } = useNuxtApp();
 const { showConfirm } = useConfirm();
 const router = useRouter();
+const { t, locale } = useI18n();
 
 // ——— 额外状态 ———
 const activeFilter = ref<'all' | 'published' | 'draft' | 'offline'>('all');
@@ -417,22 +417,23 @@ watch(searchKeyword, (newVal) => {
 	searchTimer = setTimeout(() => { debouncedSearch.value = newVal; }, 300);
 });
 
-// Table Headers
-const headers = [
-	{ title: 'ID', key: 'id', width: '80px', sortable: false },
-	{ title: '智能体', key: 'name', minWidth: '200px', sortable: false },
-	{ title: '描述', key: 'description', minWidth: '250px', sortable: false },
-	{ title: '标签', key: 'tags', width: '220px', sortable: false },
-	{ title: '状态', key: 'status', width: '100px', sortable: false },
-	{ title: '创建时间', key: 'createTime', width: '170px', sortable: false },
-	{ title: '操作', key: 'actions', width: '120px', sortable: false, align: 'center' as const },
-];
+// Table Headers（computed 保证切换语言后表头跟随更新）
+const headers = computed(() => [
+	{ title: t('agentManage.colId'), key: 'id', width: '80px', sortable: false },
+	{ title: t('agentManage.colAgent'), key: 'name', minWidth: '200px', sortable: false },
+	{ title: t('agentManage.colDescription'), key: 'description', minWidth: '250px', sortable: false },
+	{ title: t('agentManage.colTags'), key: 'tags', width: '220px', sortable: false },
+	{ title: t('agentManage.colStatus'), key: 'status', width: '100px', sortable: false },
+	{ title: t('agentManage.colCreateTime'), key: 'createTime', width: '170px', sortable: false },
+	{ title: t('agentManage.colActions'), key: 'actions', width: '120px', sortable: false, align: 'center' as const },
+]);
 
-const statusOptions = [
-	{ label: '草稿', value: 'draft' },
-	{ label: '已发布', value: 'published' },
-	{ label: '已下线', value: 'offline' },
-];
+// value 是提交给后端的枚举，label 需随语言切换，因此用 computed
+const statusOptions = computed(() => [
+	{ label: t('agentManage.statusDraft'), value: 'draft' },
+	{ label: t('agentManage.statusPublished'), value: 'published' },
+	{ label: t('agentManage.statusOffline'), value: 'offline' },
+]);
 
 const publishedCount = computed(() => agents.value.filter(a => a.status === 'published').length);
 const draftCount = computed(() => agents.value.filter(a => a.status === 'draft').length);
@@ -472,7 +473,7 @@ async function saveEdit() {
 	const { valid } = await editFormRef.value.validate();
 	if (!valid) return;
 	if (!editingId.value) {
-		$tip('智能体ID不存在', { icon: 'mdi-alert-circle', color: 'error' });
+		$tip(t('agentManage.tipAgentIdMissing'), { icon: 'mdi-alert-circle', color: 'error' });
 		return;
 	}
 	saveLoading.value = true;
@@ -485,15 +486,15 @@ async function saveEdit() {
 			status: editForm.value.status,
 		});
 		if (result) {
-			$tip('智能体更新成功');
+			$tip(t('agentManage.tipUpdateSuccess'));
 			closeEditDialog();
 			const index = agents.value.findIndex(a => a.id === editingId.value);
 			if (index !== -1) { agents.value[index] = { ...agents.value[index], ...editForm.value }; }
 		} else {
-			$tip('智能体更新失败', { icon: 'mdi-alert-circle', color: 'error' });
+			$tip(t('agentManage.tipUpdateFailed'), { icon: 'mdi-alert-circle', color: 'error' });
 		}
 	} catch {
-		$tip('更新请求失败,请检查网络', { icon: 'mdi-alert-circle', color: 'error' });
+		$tip(t('agentManage.tipUpdateNetworkError'), { icon: 'mdi-alert-circle', color: 'error' });
 	} finally {
 		saveLoading.value = false;
 	}
@@ -506,25 +507,25 @@ function showAllTags(agent: Agent) {
 
 function handleDelete(agent: Agent) {
 	if (!agent.id) {
-		$tip('智能体ID不存在', { icon: 'mdi-alert-circle', color: 'error' });
+		$tip(t('agentManage.tipAgentIdMissing'), { icon: 'mdi-alert-circle', color: 'error' });
 		return;
 	}
 	showConfirm({
-		title: '删除确认',
-		message: `确定要删除智能体 "${agent.name}" 吗?此操作不可恢复。`,
+		title: t('agentManage.deleteConfirmTitle'),
+		message: t('agentManage.deleteConfirmMessage', { name: agent.name || '' }),
 		icon: 'mdi-help-circle',
-		confirmText: '确认删除',
+		confirmText: t('agentManage.deleteConfirmBtn'),
 		onConfirm: async () => {
 			try {
 				const success = await agentService.delete(agent.id!);
 				if (success) {
-					$tip('智能体删除成功');
+					$tip(t('agentManage.tipDeleteSuccess'));
 					agents.value = agents.value.filter(a => a.id !== agent.id);
 				} else {
-					$tip('智能体删除失败', { icon: 'mdi-alert-circle', color: 'error' });
+					$tip(t('agentManage.tipDeleteFailed'), { icon: 'mdi-alert-circle', color: 'error' });
 				}
 			} catch {
-				$tip('删除请求失败,请检查网络', { icon: 'mdi-alert-circle', color: 'error' });
+				$tip(t('agentManage.tipDeleteNetworkError'), { icon: 'mdi-alert-circle', color: 'error' });
 			}
 		},
 	});
@@ -541,19 +542,28 @@ const parseTags = (tags?: string) => {
 };
 
 const getStatusText = (status?: string) => {
-	const statusMap: Record<string, string> = { published: '已发布', draft: '草稿', offline: '已下线' };
-	return statusMap[status || ''] || status || '未知';
+	const statusMap: Record<string, string> = {
+		published: t('agentManage.statusPublished'),
+		draft: t('agentManage.statusDraft'),
+		offline: t('agentManage.statusOffline'),
+	};
+	return statusMap[status || ''] || status || t('agentManage.statusUnknown');
 };
 
 const getStatusColor = (status?: string) => {
-	const colorMap: Record<string, string> = { published: 'success', draft: 'warning', offline: 'grey' };
-	return colorMap[status || ''] || 'grey';
+	// Vuetify 的 grey 不随深色主题变化，改用语义变量（tonal chip 的文字与底色均由该颜色派生）
+	const colorMap: Record<string, string> = {
+		published: 'var(--da-success)',
+		draft: 'var(--da-warning)',
+		offline: 'var(--da-text-faint)',
+	};
+	return colorMap[status || ''] || 'var(--da-text-faint)';
 };
 
 const formatTime = (time?: Date | string) => {
 	if (!time) return '';
 	const date = typeof time === 'string' ? new Date(time) : time;
-	return date.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+	return date.toLocaleString(locale.value === 'en-US' ? 'en-US' : 'zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 };
 
 onMounted(() => { loadAgents(); });
@@ -561,16 +571,24 @@ onMounted(() => { loadAgents(); });
 
 <style scoped>
 .agents-container {
-	background-color: #f8fafc;
+	/* 原 #f8fafc，与 --da-surface-soft 浅色值一致 */
+	background-color: var(--da-surface-soft);
 	min-height: 100%;
 }
 
-.text-slate-900 {
-	color: #0f172a;
+/* 原 .text-slate-900（#0f172a），与 --da-text 浅色值一致 */
+.page-title {
+	color: var(--da-text);
+}
+
+/* 原内联 border-color: #e2e8f0，与 --da-border 浅色值一致；加 .v-btn 前缀压过 Vuetify 变体样式 */
+.v-btn.refresh-btn {
+	border-color: var(--da-border);
 }
 
 .filter-toggle {
-	background-color: #f1f5f9 !important;
+	/* 原 #f1f5f9，与 --da-surface-mute 浅色值一致 */
+	background-color: var(--da-surface-mute) !important;
 	padding: 4px !important;
 }
 
@@ -579,6 +597,45 @@ onMounted(() => { loadAgents(); });
 }
 
 .search-field {
-	border-color: #e2e8f0;
+	border-color: var(--da-border);
+}
+
+/* 原 grey-lighten-3 计数徽标（浅色下几乎不可见），改用语义变量保证两种皮肤可读；加 .v-chip 前缀压过变体样式 */
+.v-chip.count-chip {
+	background-color: var(--da-surface-mute);
+	color: var(--da-text-secondary);
+}
+
+/* 原 success-lighten-3 / warning-lighten-3，浅色底色视觉等价、文字改用可读的深色 */
+.v-chip.count-chip--success {
+	background-color: var(--da-success-soft);
+	color: var(--da-success-text);
+}
+
+.v-chip.count-chip--warning {
+	background-color: var(--da-warning-soft);
+	color: var(--da-warning-text-strong);
+}
+
+/* 原 text-grey-darken-2（#616161），--da-text-muted 浅色值 #64748b 视觉等价 */
+.field-label,
+.cell-muted {
+	color: var(--da-text-muted);
+}
+
+/* 原 text-grey-darken-1（#424242），--da-text-body 浅色值 #334155 视觉等价 */
+.cell-body {
+	color: var(--da-text-body);
+}
+
+/* 原 text-grey（#9e9e9e）只有 2.6:1；这里承载「暂无标签」等正文信息而非装饰，改用 muted 让两种主题都过 AA */
+.cell-faint {
+	color: var(--da-text-muted);
+}
+
+/* 原 color="black" flat 按钮（黑底白字），深色下反转为亮底深字保证可见；加 .v-btn 前缀压过变体样式 */
+.v-btn.create-agent-btn {
+	background-color: var(--da-text);
+	color: var(--da-surface);
 }
 </style>

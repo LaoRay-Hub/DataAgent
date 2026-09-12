@@ -17,19 +17,19 @@
 <template>
 	<section class="page-shell">
 		<KnowledgePageHeader
-			title="业务知识配置"
-			subtitle="管理全局业务术语词汇表，支持同义词扩展与向量化召回。"
+			:title="t('knowledge.business.title')"
+			:subtitle="t('knowledge.business.subtitle')"
 		>
 			<template #actions>
 				<v-btn
-					class="text-none bg-white"
-					style="border-color: #e2e8f0"
+					class="text-none refresh-btn"
+					style="border-color: var(--da-border)"
 					variant="outlined"
 					prepend-icon="mdi-refresh"
 					:loading="loading"
 					@click="loadBusinessKnowledge"
 				>
-					刷新
+					{{ t('knowledge.business.refresh') }}
 				</v-btn>
 				<v-btn
 					color="blue-darken-1"
@@ -39,7 +39,7 @@
 					:loading="refreshLoading"
 					@click="handleRefreshVectorStore"
 				>
-					同步到向量库
+					{{ t('knowledge.business.syncToVector') }}
 				</v-btn>
 				<v-btn
 					color="blue-darken-3"
@@ -48,7 +48,7 @@
 					elevation="0"
 					@click="openCreateDialog"
 				>
-					添加知识
+					{{ t('knowledge.business.addKnowledge') }}
 				</v-btn>
 			</template>
 		</KnowledgePageHeader>
@@ -57,7 +57,7 @@
 		<v-card variant="flat" border class="rounded-lg mb-4 pa-4">
 			<v-text-field
 				v-model="searchKeyword"
-				placeholder="请输入关键词搜索业务名词、描述或同义词..."
+				:placeholder="t('knowledge.business.searchPlaceholder')"
 				prepend-inner-icon="mdi-magnify"
 				variant="outlined"
 				density="compact"
@@ -130,7 +130,7 @@
 				<!-- eslint-disable-next-line vue/valid-v-slot -->
 				<template #item.isRecall="{ item }">
 					<v-chip
-						:color="item.isRecall ? 'blue-darken-1' : 'grey'"
+						:color="item.isRecall ? 'var(--da-primary-text)' : 'var(--da-text-faint)'"
 						size="small"
 						variant="tonal"
 						class="font-weight-medium"
@@ -140,7 +140,11 @@
 							size="14"
 							class="mr-1"
 						/>
-						{{ item.isRecall ? '召回中' : '未召回' }}
+						{{
+							item.isRecall
+								? t('knowledge.business.recalling')
+								: t('knowledge.business.notRecalled')
+						}}
 					</v-chip>
 				</template>
 
@@ -193,7 +197,7 @@
 						<v-btn
 							size="small"
 							variant="text"
-							color="blue-darken-1"
+							color="var(--da-primary-text)"
 							icon="mdi-pencil"
 							@click="editKnowledge(item)"
 						/>
@@ -212,21 +216,25 @@
 							v-if="item.isRecall"
 							size="small"
 							variant="text"
-							color="grey-darken-1"
+							color="var(--da-text-muted)"
 							icon="mdi-bookmark-off"
 							@click="toggleRecall(item, false)"
 						>
-							<v-tooltip activator="parent" location="top">取消召回</v-tooltip>
+							<v-tooltip activator="parent" location="top">{{
+								t('knowledge.business.disableRecall')
+							}}</v-tooltip>
 						</v-btn>
 						<v-btn
 							v-else
 							size="small"
 							variant="text"
-							color="blue-darken-1"
+							color="var(--da-primary-text)"
 							icon="mdi-bookmark-plus"
 							@click="toggleRecall(item, true)"
 						>
-							<v-tooltip activator="parent" location="top">设为召回</v-tooltip>
+							<v-tooltip activator="parent" location="top">{{
+								t('knowledge.business.enableRecall')
+							}}</v-tooltip>
 						</v-btn>
 						<v-btn
 							size="small"
@@ -247,9 +255,11 @@
 							color="blue-lighten-3"
 							class="mb-4"
 						/>
-						<p class="text-body-1 text-medium-emphasis mb-2">暂无业务知识</p>
-						<p class="text-body-2 text-disabled mb-6">
-							点击「添加知识」开始配置业务术语词汇
+						<p class="text-body-1 text-medium-emphasis mb-2">
+							{{ t('knowledge.business.emptyTitle') }}
+						</p>
+						<p class="text-body-2 mb-6" style="color: var(--da-text-muted)">
+							{{ t('knowledge.business.emptyHint') }}
 						</p>
 						<v-btn
 							color="blue-darken-3"
@@ -258,7 +268,7 @@
 							elevation="0"
 							@click="openCreateDialog"
 						>
-							添加知识
+							{{ t('knowledge.business.addKnowledge') }}
 						</v-btn>
 					</div>
 				</template>
@@ -276,7 +286,9 @@
 						size="28"
 					/>
 					<span class="text-h6 font-weight-bold">{{
-						isEdit ? '编辑业务知识' : '添加业务知识'
+						isEdit
+							? t('knowledge.business.editTitle')
+							: t('knowledge.business.createTitle')
 					}}</span>
 					<v-spacer />
 					<v-btn
@@ -292,41 +304,45 @@
 				<v-card-text class="pa-6">
 					<v-form ref="formRef">
 						<div class="mb-5">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-								业务名词 <span class="text-error">*</span>
+							<p class="text-body-2 font-weight-medium form-label mb-2">
+								{{ t('knowledge.business.fieldTerm') }}
+								<span class="text-error">*</span>
 							</p>
 							<v-text-field
 								v-model="knowledgeForm.businessTerm"
-								placeholder="请输入业务名词，例如：月活用户、GMV"
+								:placeholder="t('knowledge.business.termPlaceholder')"
 								variant="outlined"
 								density="compact"
-								:rules="[(v) => !!v || '业务名词不能为空']"
+								:rules="[(v) => !!v || t('knowledge.business.termRequired')]"
 								hide-details="auto"
 							/>
 						</div>
 
 						<div class="mb-5">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-								描述 <span class="text-error">*</span>
+							<p class="text-body-2 font-weight-medium form-label mb-2">
+								{{ t('knowledge.business.fieldDescription') }}
+								<span class="text-error">*</span>
 							</p>
 							<v-textarea
 								v-model="knowledgeForm.description"
-								placeholder="请输入业务知识描述，详细说明该术语的含义与用法"
+								:placeholder="t('knowledge.business.descriptionPlaceholder')"
 								variant="outlined"
 								density="compact"
 								rows="3"
-								:rules="[(v) => !!v || '描述不能为空']"
+								:rules="[
+									(v) => !!v || t('knowledge.business.descriptionRequired'),
+								]"
 								hide-details="auto"
 							/>
 						</div>
 
 						<div class="mb-2">
-							<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-								同义词
+							<p class="text-body-2 font-weight-medium form-label mb-2">
+								{{ t('knowledge.business.fieldSynonyms') }}
 							</p>
 							<v-textarea
 								v-model="knowledgeForm.synonyms"
-								placeholder="请输入同义词，多个同义词用逗号分隔，例如：MAU, 月活, 月活跃用户数"
+								:placeholder="t('knowledge.business.synonymsPlaceholder')"
 								variant="outlined"
 								density="compact"
 								rows="2"
@@ -344,7 +360,7 @@
 						class="text-none px-6"
 						@click="dialogVisible = false"
 					>
-						取消
+						{{ t('knowledge.business.cancel') }}
 					</v-btn>
 					<v-btn
 						color="blue-darken-3"
@@ -353,7 +369,11 @@
 						:loading="saveLoading"
 						@click="saveKnowledge"
 					>
-						{{ isEdit ? '保存更新' : '立即创建' }}
+						{{
+							isEdit
+								? t('knowledge.business.saveUpdate')
+								: t('knowledge.business.createNow')
+						}}
 					</v-btn>
 				</v-card-actions>
 			</v-card>
@@ -379,6 +399,7 @@ const agentId = computed(() => Number(route.query.agentId) || DEFAULT_AGENT_ID);
 // ——— 全局工具 ———
 const { $tip } = useNuxtApp();
 const { showConfirm } = useConfirm();
+const { t } = useI18n();
 
 // ——— 额外状态 ———
 const refreshLoading = ref(false);
@@ -436,21 +457,50 @@ function openCreateDialog() {
 }
 
 // ——— 表格列定义 ———
-const headers = [
-	{ title: 'ID', key: 'id', width: '70px', sortable: true },
-	{ title: '业务名词', key: 'businessTerm', minWidth: '130px' },
-	{ title: '描述', key: 'description', minWidth: '180px', sortable: false },
-	{ title: '同义词', key: 'synonyms', minWidth: '160px', sortable: false },
+// computed 保证切换语言后表头跟随更新
+const headers = computed(() => [
+	{ title: t('knowledge.business.col.id'), key: 'id', width: '70px', sortable: true },
 	{
-		title: '向量化状态',
+		title: t('knowledge.business.col.businessTerm'),
+		key: 'businessTerm',
+		minWidth: '130px',
+	},
+	{
+		title: t('knowledge.business.col.description'),
+		key: 'description',
+		minWidth: '180px',
+		sortable: false,
+	},
+	{
+		title: t('knowledge.business.col.synonyms'),
+		key: 'synonyms',
+		minWidth: '160px',
+		sortable: false,
+	},
+	{
+		title: t('knowledge.business.col.embeddingStatus'),
 		key: 'embeddingStatus',
 		width: '140px',
 		sortable: false,
 	},
-	{ title: '召回状态', key: 'isRecall', width: '120px', sortable: false },
-	{ title: '创建时间', key: 'createdTime', width: '160px' },
-	{ title: '操作', key: 'actions', width: '160px', sortable: false },
-];
+	{
+		title: t('knowledge.business.col.recallStatus'),
+		key: 'isRecall',
+		width: '120px',
+		sortable: false,
+	},
+	{
+		title: t('knowledge.business.col.createdTime'),
+		key: 'createdTime',
+		width: '160px',
+	},
+	{
+		title: t('knowledge.business.col.actions'),
+		key: 'actions',
+		width: '160px',
+		sortable: false,
+	},
+]);
 
 // ——— 工具函数 ———
 function getVectorStatusColor(status?: string): string {
@@ -462,24 +512,25 @@ function getVectorStatusColor(status?: string): string {
 		case 'PENDING':
 			return 'warning';
 		case 'PROCESSING':
-			return 'blue-darken-1';
+			return 'var(--da-primary-text)';
 		default:
-			return 'grey';
+			// 原 color="grey"：浅色视觉等价，深色下跟随文本变量
+			return 'var(--da-text-faint)';
 	}
 }
 
 function getVectorStatusLabel(status?: string): string {
 	switch (status) {
 		case 'COMPLETED':
-			return '已完成';
+			return t('knowledge.business.status.completed');
 		case 'FAILED':
-			return '失败';
+			return t('knowledge.business.status.failed');
 		case 'PENDING':
-			return '等待中';
+			return t('knowledge.business.status.pending');
 		case 'PROCESSING':
-			return '处理中';
+			return t('knowledge.business.status.processing');
 		default:
-			return '未知';
+			return t('knowledge.business.status.unknown');
 	}
 }
 
@@ -509,28 +560,42 @@ async function saveKnowledge() {
 	};
 	const ok = await saveItem(createData, updateData, currentEditId.value);
 	if (ok) {
-		$tip(isEdit.value ? '更新成功' : '创建成功');
+		$tip(
+			isEdit.value
+				? t('knowledge.business.updateSuccess')
+				: t('knowledge.business.createSuccess'),
+		);
 	} else {
-		$tip(`${isEdit.value ? '更新' : '创建'}失败，请重试`, {
-			color: 'error',
-			icon: 'mdi-alert-circle',
-		});
+		$tip(
+			isEdit.value
+				? t('knowledge.business.updateFailedRetry')
+				: t('knowledge.business.createFailedRetry'),
+			{
+				color: 'error',
+				icon: 'mdi-alert-circle',
+			},
+		);
 	}
 }
 
 function deleteKnowledge(knowledge: BusinessKnowledgeVO) {
 	if (!knowledge.id) return;
 	showConfirm({
-		title: '删除确认',
-		message: `确定要删除业务知识「${knowledge.businessTerm}」吗？此操作不可恢复。`,
-		confirmText: '确定删除',
+		title: t('knowledge.business.deleteConfirmTitle'),
+		message: t('knowledge.business.deleteConfirmMessage', {
+			term: knowledge.businessTerm,
+		}),
+		confirmText: t('knowledge.business.deleteConfirmBtn'),
 		icon: 'mdi-delete',
 		onConfirm: async () => {
 			const ok = await deleteItem(knowledge.id!);
 			if (ok) {
-				$tip('删除成功');
+				$tip(t('knowledge.business.deleteSuccess'));
 			} else {
-				$tip('删除失败', { color: 'error', icon: 'mdi-alert-circle' });
+				$tip(t('knowledge.business.deleteFailed'), {
+					color: 'error',
+					icon: 'mdi-alert-circle',
+				});
 			}
 		},
 	});
@@ -544,13 +609,23 @@ async function toggleRecall(knowledge: BusinessKnowledgeVO, isRecall: boolean) {
 			isRecall,
 		);
 		if (result) {
-			$tip(`${isRecall ? '已设为召回' : '已取消召回'}`);
+			$tip(
+				isRecall
+					? t('knowledge.business.recallEnabled')
+					: t('knowledge.business.recallDisabled'),
+			);
 			knowledge.isRecall = isRecall;
 		} else {
-			$tip('操作失败', { color: 'error', icon: 'mdi-alert-circle' });
+			$tip(t('knowledge.business.operationFailed'), {
+				color: 'error',
+				icon: 'mdi-alert-circle',
+			});
 		}
 	} catch {
-		$tip('操作失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('knowledge.business.operationFailed'), {
+			color: 'error',
+			icon: 'mdi-alert-circle',
+		});
 	}
 }
 
@@ -560,13 +635,19 @@ async function retryEmbedding(knowledge: BusinessKnowledgeVO) {
 	try {
 		const result = await businessKnowledgeService.retryEmbedding(knowledge.id);
 		if (result) {
-			$tip('重试向量化成功');
+			$tip(t('knowledge.business.retrySuccess'));
 			await loadBusinessKnowledge();
 		} else {
-			$tip('重试向量化失败', { color: 'error', icon: 'mdi-alert-circle' });
+			$tip(t('knowledge.business.retryFailed'), {
+				color: 'error',
+				icon: 'mdi-alert-circle',
+			});
 		}
 	} catch {
-		$tip('重试向量化失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('knowledge.business.retryFailed'), {
+			color: 'error',
+			icon: 'mdi-alert-circle',
+		});
 	} finally {
 		retryLoadingMap.value[knowledge.id] = false;
 	}
@@ -574,10 +655,9 @@ async function retryEmbedding(knowledge: BusinessKnowledgeVO) {
 
 function handleRefreshVectorStore() {
 	showConfirm({
-		title: '确认同步',
-		message:
-			'如果所有向量状态正常，即无需同步。确定要清除现有数据并开始重新同步吗？',
-		confirmText: '确定同步',
+		title: t('knowledge.business.syncConfirmTitle'),
+		message: t('knowledge.business.syncConfirmMessage'),
+		confirmText: t('knowledge.business.syncConfirmBtn'),
 		icon: 'mdi-sync',
 		onConfirm: async () => {
 			refreshLoading.value = true;
@@ -587,15 +667,18 @@ function handleRefreshVectorStore() {
 						agentId.value.toString(),
 					);
 				if (result) {
-					$tip('同步到向量库成功');
+					$tip(t('knowledge.business.syncSuccess'));
 				} else {
-					$tip('同步到向量库失败', {
+					$tip(t('knowledge.business.syncFailed'), {
 						color: 'error',
 						icon: 'mdi-alert-circle',
 					});
 				}
 			} catch {
-				$tip('同步到向量库失败', { color: 'error', icon: 'mdi-alert-circle' });
+				$tip(t('knowledge.business.syncFailed'), {
+					color: 'error',
+					icon: 'mdi-alert-circle',
+				});
 			} finally {
 				refreshLoading.value = false;
 			}
@@ -607,4 +690,19 @@ function handleRefreshVectorStore() {
 onMounted(() => loadBusinessKnowledge());
 </script>
 
-<style scoped></style>
+<style scoped>
+/* 原 bg-white：浅色仍是 #ffffff，深色跟随面板色 */
+.refresh-btn {
+	background-color: var(--da-surface);
+}
+
+/* 原 text-grey-darken-2：浅色视觉等价，深色下提高亮度 */
+.form-label {
+	color: var(--da-text-muted);
+}
+
+/* 覆盖 main.css 里写死的 .search-field 边框色，浅色值完全一致 */
+.search-field :deep(.v-field__outline) {
+	--v-field-border-color: var(--da-border);
+}
+</style>

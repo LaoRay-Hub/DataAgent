@@ -19,6 +19,7 @@
  */
 
 import axios from 'axios';
+import { translate } from '../../composables/useI18n';
 import type { ApiResponse } from './common';
 
 /**
@@ -143,7 +144,7 @@ class ChatService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 500) {
-        throw new Error('保存消息失败');
+        throw new Error(translate('error.saveMessageFailed'));
       }
       throw error;
     }
@@ -167,10 +168,10 @@ class ChatService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
-        throw new Error('isPinned参数不能为空');
+        throw new Error(translate('error.pinParamRequired'));
       }
       if (axios.isAxiosError(error) && error.response?.status === 500) {
-        throw new Error('操作失败');
+        throw new Error(translate('error.operationFailed'));
       }
       throw error;
     }
@@ -185,7 +186,7 @@ class ChatService {
   async renameSession(sessionId: string, title: string): Promise<ApiResponse> {
     try {
       if (!title || title.trim().length === 0) {
-        throw new Error('标题不能为空');
+        throw new Error(translate('error.titleRequired'));
       }
 
       const response = await axios.put<ApiResponse>(
@@ -198,10 +199,10 @@ class ChatService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
-        throw new Error('标题不能为空');
+        throw new Error(translate('error.titleRequired'));
       }
       if (axios.isAxiosError(error) && error.response?.status === 500) {
-        throw new Error('重命名失败');
+        throw new Error(translate('error.renameFailed'));
       }
       throw error;
     }
@@ -218,7 +219,7 @@ class ChatService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 500) {
-        throw new Error('删除失败');
+        throw new Error(translate('error.deleteFailed'));
       }
       throw error;
     }
@@ -263,7 +264,7 @@ class ChatService {
       URL.revokeObjectURL(url);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`下载失败: ${error.message}`);
+        throw new Error(translate('error.downloadFailed', { detail: error.message }));
       }
       throw error;
     }

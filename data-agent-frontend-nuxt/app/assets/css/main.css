@@ -88,3 +88,221 @@
 		box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
 	}
 }
+
+/* ── 语义色变量 ──────────────────────────────────────────────────────────────
+   浅色取值与改造前各组件里硬编码的颜色一致，深色对齐宿主 data-pilot 的暗色面板。
+   深色由 app.vue 依据宿主下发的皮肤在 <html> 上切 .da-dark，不依赖 Vuetify 的 DOM 结构。 */
+
+:root {
+	/* 面 */
+	--da-page-bg: #f1f5f9;
+	--da-surface: #ffffff;
+	--da-surface-soft: #f8fafc;
+	--da-surface-mute: #f1f5f9;
+	--da-surface-alt: #f3f4f6;
+	--da-code-bg: #f6f8fa;
+
+	/* 线 */
+	--da-border: #e2e8f0;
+	--da-border-soft: #e1e4e8;
+	--da-border-mute: #e8edf2;
+	--da-border-strong: #c6cbd1;
+	--da-border-faint: #cbd5e1;
+
+	/* 字 */
+	--da-text: #0f172a;
+	--da-text-strong: #1e293b;
+	--da-text-body: #334155;
+	--da-text-secondary: #475569;
+	--da-text-muted: #64748b;
+	--da-text-faint: #94a3b8;
+	--da-text-on-dark: #ffffff;
+
+	/* 主色 */
+	--da-primary: #3b82f6;
+	--da-primary-strong: #2563eb;
+	--da-primary-deep: #1d4ed8;
+	--da-primary-text: #1d4ed8;
+	--da-primary-heading: #1565c0;
+	--da-primary-light: #60a5fa;
+	--da-primary-lighter: #93c5fd;
+	--da-primary-soft: #eff6ff;
+	--da-primary-tint: #dbeafe;
+	--da-primary-wash: #e8f0fe;
+
+	/* 状态色 */
+	--da-success: #28a745;
+	--da-success-soft: #dcfce7;
+	--da-success-text: #15803d;
+	--da-primary-border: #bfdbfe;
+	--da-warning: #f59e0b;
+	--da-warning-soft: #fffbeb;
+	--da-warning-border: #fde68a;
+	--da-warning-text: #fcd34d;
+	--da-warning-text-strong: #92400e;
+	--da-danger: #ef4444;
+	--da-danger-strong: #dc2626;
+	--da-danger-soft: #fef2f2;
+	--da-danger-border: #fca5a5;
+	--da-danger-text-strong: #991b1b;
+	--da-accent: #e83e8c;
+	--da-code-label: #6a737d;
+
+	/* 影 */
+	--da-shadow: rgba(15, 23, 42, 0.2);
+	--da-shadow-soft: rgba(0, 0, 0, 0.12);
+	--da-shadow-faint: rgba(0, 0, 0, 0.08);
+
+	/* 侧边栏跟随宿主皮肤：浅色白底深字，深色沿用宿主暗色面板 */
+	--da-sidebar-bg: #ffffff;
+	--da-sidebar-field: rgba(241, 245, 249, 0.9);
+	--da-sidebar-text: #1e293b;
+	--da-sidebar-border: rgba(15, 23, 42, 0.08);
+	--da-sidebar-scrollbar: rgba(15, 23, 42, 0.18);
+	--da-sidebar-scrollbar-hover: rgba(15, 23, 42, 0.3);
+}
+
+:root.da-dark {
+	color-scheme: dark;
+
+	--da-page-bg: #0e1420;
+	--da-surface: #151c2c;
+	--da-surface-soft: #1a2232;
+	--da-surface-mute: #212a3d;
+	--da-surface-alt: #1f2839;
+	--da-code-bg: #111827;
+
+	--da-border: #2b3548;
+	--da-border-soft: #263041;
+	--da-border-mute: #232d3f;
+	--da-border-strong: #3b465d;
+	--da-border-faint: #33405a;
+
+	--da-text: #e7ecf6;
+	--da-text-strong: #dde5f2;
+	--da-text-body: #c5cfe0;
+	--da-text-secondary: #aab5c8;
+	--da-text-muted: #8d99ad;
+	--da-text-faint: #717e93;
+
+	--da-primary: #4f8cff;
+	--da-primary-strong: #3d7bf5;
+	--da-primary-deep: #2f6ae0;
+	/* 深色下 #2f6ae0 作为文字落在半透明蓝色底上只有约 2.5:1，改用亮蓝保证可读 */
+	--da-primary-text: #9cc4ff;
+	/* 浅色的 #1565c0 落在深色卡片底 #151c2c 上只有约 3.3:1，标题换更亮的蓝（约 6.8:1） */
+	--da-primary-heading: #6aa5ff;
+	--da-primary-light: #6aa5ff;
+	--da-primary-lighter: #9cc4ff;
+	--da-primary-soft: rgba(79, 140, 255, 0.14);
+	--da-primary-tint: rgba(79, 140, 255, 0.22);
+	--da-primary-wash: rgba(79, 140, 255, 0.16);
+
+	--da-success: #3fbf63;
+	--da-success-soft: rgba(63, 191, 99, 0.18);
+	--da-success-text: #6ee7a0;
+	--da-primary-border: rgba(79, 140, 255, 0.35);
+	--da-warning: #f0a72f;
+	--da-warning-soft: rgba(240, 167, 47, 0.14);
+	--da-warning-border: rgba(240, 167, 47, 0.35);
+	--da-warning-text: #fcd34d;
+	--da-warning-text-strong: #fcd34d;
+	--da-danger: #f2685f;
+	--da-danger-strong: #ef5350;
+	--da-danger-soft: rgba(242, 104, 95, 0.14);
+	--da-danger-border: rgba(242, 104, 95, 0.4);
+	--da-danger-text-strong: #fca5a5;
+	--da-accent: #f2559d;
+	--da-code-label: #8d99ad;
+
+	--da-shadow: rgba(0, 0, 0, 0.5);
+	--da-shadow-soft: rgba(0, 0, 0, 0.45);
+	--da-shadow-faint: rgba(0, 0, 0, 0.35);
+
+	--da-sidebar-bg: #131b2b;
+	--da-sidebar-field: rgba(19, 27, 43, 0.85);
+	--da-sidebar-text: #e2e8f0;
+	--da-sidebar-border: rgba(255, 255, 255, 0.05);
+	--da-sidebar-scrollbar: rgba(255, 255, 255, 0.1);
+	--da-sidebar-scrollbar-hover: rgba(255, 255, 255, 0.2);
+}
+
+.da-dark ::-webkit-scrollbar-thumb {
+	background-color: var(--da-border-strong);
+}
+
+/* ── 代码高亮深色适配 ────────────────────────────────────────────────────────
+   全局引入的是 highlight.js 的 atom-one-light，深色皮肤下需要整体覆盖，
+   用 .da-dark 前缀保证特异性高于全局 .hljs，浅色模式不受影响。 */
+
+.da-dark .hljs {
+	background: var(--da-code-bg);
+	color: #abb2bf;
+}
+
+.da-dark .hljs-comment,
+.da-dark .hljs-quote {
+	color: #7f848e;
+	font-style: italic;
+}
+
+.da-dark .hljs-keyword,
+.da-dark .hljs-selector-tag,
+.da-dark .hljs-literal,
+.da-dark .hljs-doctag,
+.da-dark .hljs-template-tag {
+	color: #c678dd;
+}
+
+.da-dark .hljs-string,
+.da-dark .hljs-regexp,
+.da-dark .hljs-addition,
+.da-dark .hljs-meta .hljs-string {
+	color: #98c379;
+}
+
+.da-dark .hljs-number,
+.da-dark .hljs-symbol,
+.da-dark .hljs-bullet,
+.da-dark .hljs-link {
+	color: #d19a66;
+}
+
+.da-dark .hljs-built_in,
+.da-dark .hljs-type,
+.da-dark .hljs-class .hljs-title,
+.da-dark .hljs-title.class_ {
+	color: #e5c07b;
+}
+
+.da-dark .hljs-title,
+.da-dark .hljs-title.function_,
+.da-dark .hljs-section,
+.da-dark .hljs-selector-id,
+.da-dark .hljs-selector-class {
+	color: #61afef;
+}
+
+.da-dark .hljs-attr,
+.da-dark .hljs-attribute,
+.da-dark .hljs-variable,
+.da-dark .hljs-template-variable,
+.da-dark .hljs-selector-attr,
+.da-dark .hljs-selector-pseudo,
+.da-dark .hljs-name,
+.da-dark .hljs-meta,
+.da-dark .hljs-deletion {
+	color: #e06c75;
+}
+
+.da-dark .hljs-tag {
+	color: #abb2bf;
+}
+
+.da-dark .hljs-emphasis {
+	font-style: italic;
+}
+
+.da-dark .hljs-strong {
+	font-weight: 700;
+}

@@ -15,6 +15,7 @@
  */
 
 import type MarkdownIt from 'markdown-it';
+import { translate } from '../../composables/useI18n';
 
 const echartsPlugin = (md: MarkdownIt) => {
 	const originalFence = md.renderer.rules.fence!.bind(md.renderer.rules);
@@ -41,7 +42,7 @@ const echartsPlugin = (md: MarkdownIt) => {
 				// Chart code is still being streamed — show a skeleton placeholder
 				return `<div class="md-echarts-skeleton">
 					<span class="md-echarts-skeleton-icon">⏳</span>
-					<span class="md-echarts-skeleton-text">图表生成中...</span>
+					<span class="md-echarts-skeleton-text">${translate('ui.chartGenerating')}</span>
 				</div>`;
 			} else {
 				return `<pre><code class="language-echarts">${code}</code></pre>`;

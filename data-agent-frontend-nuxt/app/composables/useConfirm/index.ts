@@ -15,6 +15,7 @@
  */
 
 import { reactive } from 'vue';
+import { translate } from '../useI18n';
 
 /**
  * @description 确认对话框的状态接口定义
@@ -42,7 +43,7 @@ const defaultState: ConfirmState = {
 	title: '',
 	message: '',
 	icon: 'mdi-help-circle',
-	confirmText: '确认',
+	confirmText: '',
 	onConfirm: () => {},
 };
 
@@ -62,7 +63,11 @@ const dialogState = reactive<ConfirmState>({ ...defaultState });
  * });
  */
 export function showConfirm(options: Partial<Omit<ConfirmState, 'isVisible'>>) {
-	Object.assign(dialogState, defaultState, options, { isVisible: true });
+	// 文案在调用时解析，模块加载时求值会固定在启动语言
+	Object.assign(dialogState, defaultState, options, {
+		confirmText: options.confirmText || translate('ui.confirm'),
+		isVisible: true,
+	});
 }
 
 /**

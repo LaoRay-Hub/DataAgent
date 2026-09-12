@@ -22,7 +22,7 @@
 				<v-icon color="primary" size="18" class="mr-2"
 					>mdi-file-document-outline</v-icon
 				>
-				<span>报告已生成</span>
+				<span>{{ t('chat.reportGenerated') }}</span>
 				<v-btn-toggle
 					v-model="format"
 					mandatory
@@ -42,7 +42,7 @@
 					size="x-small"
 					variant="outlined"
 					prepend-icon="mdi-download"
-					title="下载 MD"
+					:title="t('chat.downloadMarkdown')"
 					@click="downloadMd"
 				>
 					MD
@@ -52,7 +52,7 @@
 					variant="outlined"
 					color="success"
 					prepend-icon="mdi-download"
-					title="下载 HTML"
+					:title="t('chat.downloadHtml')"
 					@click="downloadHtml"
 				>
 					HTML
@@ -62,7 +62,7 @@
 					variant="outlined"
 					color="primary"
 					icon="mdi-fullscreen"
-					title="全屏查看"
+					:title="t('chat.viewFullscreen')"
 					@click="store.openReportFullscreen(content)"
 				/>
 			</div>
@@ -80,17 +80,19 @@
 				ref="htmlIframeRef"
 				class="html-iframe"
 				sandbox="allow-scripts"
-				title="HTML报告预览"
+				:title="t('chat.htmlPreview')"
 			/>
 		</div>
 
 		<!-- Fullscreen dialog -->
 		<v-dialog v-model="store.showReportFullscreen" fullscreen>
 			<v-card>
-				<v-toolbar density="compact" color="white" border="b">
+				<v-toolbar density="compact" color="var(--da-surface)" border="b">
 					<v-toolbar-title class="text-body-2 font-weight-bold">
 						{{
-							store.reportFormat === 'markdown' ? 'Markdown 报告' : 'HTML 报告'
+							store.reportFormat === 'markdown'
+								? t('chat.markdownReport')
+								: t('chat.htmlReport')
 						}}
 					</v-toolbar-title>
 					<v-spacer />
@@ -132,7 +134,7 @@
 						ref="fullscreenIframeRef"
 						style="width: 100%; height: 100%; min-height: 600px; border: none"
 						sandbox="allow-scripts"
-						title="HTML报告预览"
+						:title="t('chat.htmlPreview')"
 					/>
 				</v-card-text>
 			</v-card>
@@ -150,6 +152,7 @@ import { useChatStore } from '~/stores/chat';
 
 const props = defineProps<{ content: string }>();
 const store = useChatStore();
+const { t } = useI18n();
 const format = ref<'markdown' | 'html'>('markdown');
 const reportBodyRef = ref<HTMLElement | null>(null);
 const htmlIframeRef = ref<HTMLIFrameElement | null>(null);
@@ -170,8 +173,9 @@ function loadHtmlToIframe(
 ) {
 	if (!iframe) return;
 	if (!markdownContent) {
-		iframe.srcdoc =
-			'<html><body style="padding:20px;color:#666;">暂无报告内容</body></html>';
+		iframe.srcdoc = `<html><body style="padding:20px;color:#666;">${t(
+			'chat.emptyReport',
+		)}</body></html>`;
 		return;
 	}
 	const html = buildReportHtml(markdownContent);
@@ -240,7 +244,7 @@ async function downloadHtml() {
 
 <style scoped>
 .markdown-report {
-	background: white;
+	background: var(--da-surface);
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────────── */
@@ -249,8 +253,8 @@ async function downloadHtml() {
 	justify-content: space-between;
 	align-items: center;
 	padding: 10px 14px;
-	background: #f8fafc;
-	border-bottom: 1px solid #e8edf2;
+	background: var(--da-surface-soft);
+	border-bottom: 1px solid var(--da-border-mute);
 	flex-wrap: wrap;
 	gap: 8px;
 }
@@ -259,7 +263,7 @@ async function downloadHtml() {
 	align-items: center;
 	font-size: 13.5px;
 	font-weight: 600;
-	color: #1e293b;
+	color: var(--da-text-strong);
 	gap: 0;
 }
 .report-actions {
@@ -275,7 +279,7 @@ async function downloadHtml() {
 
 /* ── Format toggle ───────────────────────────────────────────────────────────── */
 .format-toggle {
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	border-radius: 6px;
 	overflow: hidden;
 }
@@ -303,7 +307,7 @@ async function downloadHtml() {
 .markdown-body :deep(h3) {
 	font-weight: 700;
 	margin: 14px 0 6px;
-	color: #0f172a;
+	color: var(--da-text);
 }
 .markdown-body :deep(h1) {
 	font-size: 20px;
@@ -317,7 +321,7 @@ async function downloadHtml() {
 .markdown-body :deep(p) {
 	margin-bottom: 10px;
 	line-height: 1.75;
-	color: #374151;
+	color: var(--da-text-body);
 	font-size: 14px;
 }
 .markdown-body :deep(ul),
@@ -328,15 +332,15 @@ async function downloadHtml() {
 .markdown-body :deep(li) {
 	line-height: 1.7;
 	font-size: 14px;
-	color: #374151;
+	color: var(--da-text-body);
 }
 .markdown-body :deep(code:not(pre code)) {
-	background: #f6f8fa;
-	border: 1px solid #e1e4e8;
+	background: var(--da-code-bg);
+	border: 1px solid var(--da-border-soft);
 	padding: 2px 5px;
 	border-radius: 3px;
 	font-size: 12.5px;
-	color: #e83e8c;
+	color: var(--da-accent);
 }
 .markdown-body :deep(table) {
 	width: 100%;
@@ -353,13 +357,13 @@ async function downloadHtml() {
 }
 .markdown-body :deep(tr) {
 	display: table-row;
-	border-top: 1px solid #c6cbd1;
+	border-top: 1px solid var(--da-border-strong);
 }
 .markdown-body :deep(th) {
 	display: table-cell;
-	background: #f1f5f9;
+	background: var(--da-surface-mute);
 	padding: 8px 12px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	font-weight: 600;
 	font-size: 13px;
 	text-align: left;
@@ -367,40 +371,40 @@ async function downloadHtml() {
 .markdown-body :deep(td) {
 	display: table-cell;
 	padding: 8px 12px;
-	border: 1px solid #e8edf2;
+	border: 1px solid var(--da-border-mute);
 	font-size: 13px;
 }
 .markdown-body :deep(tr:nth-child(even) td) {
-	background: #f8fafc;
+	background: var(--da-surface-soft);
 }
 .markdown-body :deep(blockquote) {
-	border-left: 3px solid #3b82f6;
+	border-left: 3px solid var(--da-primary);
 	padding: 8px 14px;
 	margin-left: 0;
-	background: #eff6ff;
+	background: var(--da-primary-soft);
 	border-radius: 0 6px 6px 0;
-	color: #374151;
+	color: var(--da-text-body);
 }
 
 /* ── Code block with header ─────────────────────────────────────────────────── */
 .markdown-body :deep(.code-block-wrapper) {
 	margin: 10px 0;
-	border: 1px solid #e1e4e8;
+	border: 1px solid var(--da-border-soft);
 	border-radius: 6px;
 	overflow: auto;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 }
 .markdown-body :deep(.code-block-header) {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 	padding: 6px 10px;
-	border-bottom: 1px solid #e1e4e8;
+	border-bottom: 1px solid var(--da-border-soft);
 	font-size: 11px;
 }
 .markdown-body :deep(.code-language) {
-	color: #6a737d;
+	color: var(--da-code-label);
 	font-weight: 600;
 	font-family: 'Monaco', 'Menlo', monospace;
 	font-size: 10px;
@@ -408,29 +412,30 @@ async function downloadHtml() {
 }
 .markdown-body :deep(.code-copy-button) {
 	background: transparent;
-	border: 1px solid #d1d5da;
+	border: 1px solid var(--da-border-strong);
 	padding: 3px 10px;
 	border-radius: 4px;
 	font-size: 10px;
 	cursor: pointer;
 	transition: all 0.2s;
-	color: #24292e;
+	color: var(--da-text);
 }
 .markdown-body :deep(.code-copy-button:hover) {
-	background: #f3f4f6;
-	border-color: #c6cbd1;
+	background: var(--da-surface-alt);
+	border-color: var(--da-border-strong);
 }
 .markdown-body :deep(.code-copy-button.copied) {
-	background: #28a745;
-	border-color: #28a745;
-	color: white;
+	background: var(--da-success);
+	border-color: var(--da-success);
+	color: var(--da-text-on-dark);
 }
 .markdown-body :deep(pre.hljs) {
 	margin: 0;
 	padding: 10px;
 	overflow-x: auto;
 	overflow-y: hidden;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
+	color: var(--da-text-body);
 	font-size: 12px;
 	line-height: 1.4;
 	white-space: pre;
@@ -462,11 +467,16 @@ async function downloadHtml() {
 	margin: 10px 0;
 	height: 120px;
 	border-radius: 8px;
-	border: 1px dashed #cbd5e1;
-	background: linear-gradient(90deg, #f8fafc 25%, #f1f5f9 50%, #f8fafc 75%);
+	border: 1px dashed var(--da-border-faint);
+	background: linear-gradient(
+		90deg,
+		var(--da-surface-soft) 25%,
+		var(--da-surface-mute) 50%,
+		var(--da-surface-soft) 75%
+	);
 	background-size: 200% 100%;
 	animation: skeletonShimmer 1.6s ease-in-out infinite;
-	color: #94a3b8;
+	color: var(--da-text-faint);
 	font-size: 13px;
 }
 :deep(.md-echarts-skeleton-icon) {

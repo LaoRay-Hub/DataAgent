@@ -20,7 +20,7 @@
 			<v-icon color="primary" size="18" class="mr-2"
 				>mdi-file-document-edit-outline</v-icon
 			>
-			<span>正在生成报告...</span>
+			<span>{{ t('chat.generatingReport') }}</span>
 			<span class="typing-indicator">
 				<span class="typing-dot" />
 				<span class="typing-dot typing-dot--2" />
@@ -42,6 +42,7 @@ import { useEchartsRenderer } from '~/composables/useEchartsRenderer';
 
 const props = defineProps<{ content: string }>();
 const bodyRef = ref<HTMLElement | null>(null);
+const { t } = useI18n();
 
 const { displayedText, append, reset } = useTypewriter();
 const { renderECharts } = useEchartsRenderer();
@@ -96,18 +97,18 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .streaming-report {
-	background: white;
+	background: var(--da-surface);
 }
 
 .report-header {
 	display: flex;
 	align-items: center;
 	padding: 10px 14px;
-	background: #f8fafc;
-	border-bottom: 1px solid #e8edf2;
+	background: var(--da-surface-soft);
+	border-bottom: 1px solid var(--da-border-mute);
 	font-size: 13.5px;
 	font-weight: 600;
-	color: #1e293b;
+	color: var(--da-text-strong);
 }
 
 .typing-indicator {
@@ -120,7 +121,7 @@ onBeforeUnmount(() => {
 .typing-dot {
 	width: 4px;
 	height: 4px;
-	background: #3b82f6;
+	background: var(--da-primary);
 	border-radius: 50%;
 	animation: typingBounce 1.2s infinite;
 }
@@ -158,7 +159,7 @@ onBeforeUnmount(() => {
 	width: 6px;
 	height: 6px;
 	border-radius: 50%;
-	background: #3b82f6;
+	background: var(--da-primary);
 	margin-left: 3px;
 	vertical-align: middle;
 	animation: cursorDotBlink 0.7s step-end infinite;
@@ -179,7 +180,7 @@ onBeforeUnmount(() => {
 .markdown-body :deep(h3) {
 	font-weight: 700;
 	margin: 14px 0 6px;
-	color: #0f172a;
+	color: var(--da-text);
 }
 .markdown-body :deep(h1) {
 	font-size: 20px;
@@ -193,7 +194,7 @@ onBeforeUnmount(() => {
 .markdown-body :deep(p) {
 	margin-bottom: 10px;
 	line-height: 1.75;
-	color: #374151;
+	color: var(--da-text-body);
 	font-size: 14px;
 }
 .markdown-body :deep(ul),
@@ -204,15 +205,15 @@ onBeforeUnmount(() => {
 .markdown-body :deep(li) {
 	line-height: 1.7;
 	font-size: 14px;
-	color: #374151;
+	color: var(--da-text-body);
 }
 .markdown-body :deep(code:not(pre code)) {
-	background: #f6f8fa;
-	border: 1px solid #e1e4e8;
+	background: var(--da-code-bg);
+	border: 1px solid var(--da-border-soft);
 	padding: 2px 5px;
 	border-radius: 3px;
 	font-size: 12.5px;
-	color: #e83e8c;
+	color: var(--da-accent);
 }
 .markdown-body :deep(table) {
 	width: 100%;
@@ -229,13 +230,13 @@ onBeforeUnmount(() => {
 }
 .markdown-body :deep(tr) {
 	display: table-row;
-	border-top: 1px solid #c6cbd1;
+	border-top: 1px solid var(--da-border-strong);
 }
 .markdown-body :deep(th) {
 	display: table-cell;
-	background: #f1f5f9;
+	background: var(--da-surface-mute);
 	padding: 8px 12px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	font-weight: 600;
 	font-size: 13px;
 	text-align: left;
@@ -243,40 +244,40 @@ onBeforeUnmount(() => {
 .markdown-body :deep(td) {
 	display: table-cell;
 	padding: 8px 12px;
-	border: 1px solid #e8edf2;
+	border: 1px solid var(--da-border-mute);
 	font-size: 13px;
 }
 .markdown-body :deep(tr:nth-child(even) td) {
-	background: #f8fafc;
+	background: var(--da-surface-soft);
 }
 .markdown-body :deep(blockquote) {
-	border-left: 3px solid #3b82f6;
+	border-left: 3px solid var(--da-primary);
 	padding: 8px 14px;
 	margin-left: 0;
-	background: #eff6ff;
+	background: var(--da-primary-soft);
 	border-radius: 0 6px 6px 0;
-	color: #374151;
+	color: var(--da-text-body);
 }
 
 /* ── Code block with header ─────────────────────────────────────────────────── */
 .markdown-body :deep(.code-block-wrapper) {
 	margin: 10px 0;
-	border: 1px solid #e1e4e8;
+	border: 1px solid var(--da-border-soft);
 	border-radius: 6px;
 	overflow: auto;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 }
 .markdown-body :deep(.code-block-header) {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 	padding: 6px 10px;
-	border-bottom: 1px solid #e1e4e8;
+	border-bottom: 1px solid var(--da-border-soft);
 	font-size: 11px;
 }
 .markdown-body :deep(.code-language) {
-	color: #6a737d;
+	color: var(--da-code-label);
 	font-weight: 600;
 	font-family: 'Monaco', 'Menlo', monospace;
 	font-size: 10px;
@@ -284,29 +285,30 @@ onBeforeUnmount(() => {
 }
 .markdown-body :deep(.code-copy-button) {
 	background: transparent;
-	border: 1px solid #d1d5da;
+	border: 1px solid var(--da-border-strong);
 	padding: 3px 10px;
 	border-radius: 4px;
 	font-size: 10px;
 	cursor: pointer;
 	transition: all 0.2s;
-	color: #24292e;
+	color: var(--da-text);
 }
 .markdown-body :deep(.code-copy-button:hover) {
-	background: #f3f4f6;
-	border-color: #c6cbd1;
+	background: var(--da-surface-alt);
+	border-color: var(--da-border-strong);
 }
 .markdown-body :deep(.code-copy-button.copied) {
-	background: #28a745;
-	border-color: #28a745;
-	color: white;
+	background: var(--da-success);
+	border-color: var(--da-success);
+	color: var(--da-text-on-dark);
 }
 .markdown-body :deep(pre.hljs) {
 	margin: 0;
 	padding: 10px;
 	overflow-x: auto;
 	overflow-y: hidden;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
+	color: var(--da-text-body);
 	font-size: 12px;
 	line-height: 1.4;
 	white-space: pre;
@@ -338,11 +340,16 @@ onBeforeUnmount(() => {
 	margin: 10px 0;
 	height: 120px;
 	border-radius: 8px;
-	border: 1px dashed #cbd5e1;
-	background: linear-gradient(90deg, #f8fafc 25%, #f1f5f9 50%, #f8fafc 75%);
+	border: 1px dashed var(--da-border-faint);
+	background: linear-gradient(
+		90deg,
+		var(--da-surface-soft) 25%,
+		var(--da-surface-mute) 50%,
+		var(--da-surface-soft) 75%
+	);
 	background-size: 200% 100%;
 	animation: skeletonShimmer 1.6s ease-in-out infinite;
-	color: #94a3b8;
+	color: var(--da-text-faint);
 	font-size: 13px;
 }
 :deep(.md-echarts-skeleton-icon) {

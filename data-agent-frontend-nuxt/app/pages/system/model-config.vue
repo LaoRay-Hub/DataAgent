@@ -19,9 +19,11 @@
 		<!-- Header Section -->
 		<header class="d-flex align-center justify-space-between mb-8">
 			<div>
-				<h1 class="text-h4 font-weight-bold mb-1 text-slate-900">模型服务</h1>
+				<h1 class="text-h4 font-weight-bold mb-1 page-title">
+					{{ t('modelConfig.title') }}
+				</h1>
 				<p class="text-body-2 text-medium-emphasis">
-					连接 LLM 供应商，支持对话生成与向量检索。
+					{{ t('modelConfig.subtitle') }}
 				</p>
 			</div>
 			<div class="d-flex ga-3">
@@ -30,19 +32,22 @@
 					prepend-icon="mdi-refresh"
 					:loading="loading"
 					class="text-none"
-					style="border-color: #e2e8f0"
+					style="border-color: var(--da-border)"
 					@click="fetchConfigs"
 				>
-					刷新
+					{{ t('modelConfig.refresh') }}
 				</v-btn>
 				<v-btn
-					color="black"
+					class="btn-inverse text-none px-6"
 					prepend-icon="mdi-plus"
-					class="text-none px-6"
 					elevation="0"
 					@click="openCreateDialog(activeTab)"
 				>
-					{{ activeTab === 'CHAT' ? '添加对话模型' : '添加嵌入模型' }}
+					{{
+						activeTab === 'CHAT'
+							? t('modelConfig.addChatModel')
+							: t('modelConfig.addEmbeddingModel')
+					}}
 				</v-btn>
 			</div>
 		</header>
@@ -62,13 +67,13 @@
 					value="CHAT"
 					variant="flat"
 					class="px-8 text-none font-weight-bold"
-					>对话模型</v-btn
+					>{{ t('modelConfig.tabChat') }}</v-btn
 				>
 				<v-btn
 					value="EMBEDDING"
 					variant="flat"
 					class="px-8 text-none font-weight-bold"
-					>嵌入模型</v-btn
+					>{{ t('modelConfig.tabEmbedding') }}</v-btn
 				>
 			</v-btn-toggle>
 		</div>
@@ -117,7 +122,9 @@
 								<div class="pa-5 d-flex align-center">
 									<!-- Icon -->
 									<v-avatar
-										:color="model.isActive ? 'primary' : 'grey-lighten-4'"
+										:color="
+											model.isActive ? 'primary' : 'var(--da-surface-mute)'
+										"
 										:class="{ 'text-white': model.isActive }"
 										size="48"
 										rounded="lg"
@@ -147,7 +154,7 @@
 												class="px-2 font-weight-bold d-inline-flex align-center"
 											>
 												<span class="breathing-dot"></span>
-												默认
+												{{ t('modelConfig.defaultBadge') }}
 											</v-chip>
 										</div>
 										<div
@@ -159,7 +166,7 @@
 											</span>
 											<span class="d-flex align-center">
 												<v-icon size="14" class="mr-1">mdi-link-variant</v-icon>
-												{{ model.baseUrl || '默认终端地址' }}
+												{{ model.baseUrl || t('modelConfig.defaultEndpoint') }}
 											</span>
 										</div>
 									</div>
@@ -176,18 +183,18 @@
 											:loading="activatingId === model.id"
 											@click="handleActivate(model)"
 										>
-											设为默认
+											{{ t('modelConfig.setDefault') }}
 										</v-btn>
 
 										<v-btn
 											variant="outlined"
 											size="small"
 											class="text-none"
-											style="border-color: #e2e8f0"
+											style="border-color: var(--da-border)"
 											:loading="testingId === model.id"
 											@click="handleTestConnection(model)"
 										>
-											测试连接
+											{{ t('modelConfig.testConnection') }}
 										</v-btn>
 
 										<v-divider vertical inset class="mx-1"></v-divider>
@@ -197,7 +204,7 @@
 												icon="mdi-pencil-outline"
 												variant="text"
 												size="small"
-												color="grey-darken-1"
+												color="var(--da-text-muted)"
 												@click="handleEdit(model)"
 											></v-btn>
 											<v-btn
@@ -217,25 +224,24 @@
 						<div
 							v-if="filteredModels.length === 0"
 							:key="activeTab + 'empty'"
-							class="text-center py-16 border-dashed rounded-xl bg-white"
+							class="empty-state text-center py-16 border-dashed rounded-xl"
 						>
 							<v-icon
 								icon="mdi-robot-vacuum-variant-off"
 								size="64"
-								color="grey-lighten-2"
-								class="mb-4"
+								class="empty-icon mb-4"
 							></v-icon>
-							<h3 class="text-h6 font-weight-medium text-grey-darken-1">
-								暂无配置
+							<h3 class="text-h6 font-weight-medium empty-title">
+								{{ t('modelConfig.emptyTitle') }}
 							</h3>
-							<p class="text-body-2 text-grey mb-6">
-								您还没有在该分类下添加任何供应商
+							<p class="text-body-2 empty-text mb-6">
+								{{ t('modelConfig.emptyText') }}
 							</p>
 							<v-btn
-								color="black"
+								class="btn-inverse"
 								variant="flat"
 								@click="openCreateDialog(activeTab)"
-								>立即添加</v-btn
+								>{{ t('modelConfig.addNow') }}</v-btn
 							>
 						</div>
 					</TransitionGroup>
@@ -262,7 +268,7 @@
 					<v-form ref="formRef" v-model="formValid" fast-fail>
 						<v-row dense>
 							<v-col cols="12">
-								<span class="custom-label">模型供应商</span>
+								<span class="custom-label">{{ t('modelConfig.labelProvider') }}</span>
 								<v-select
 									v-model="form.provider"
 									:items="providerOptions"
@@ -272,17 +278,17 @@
 								/>
 							</v-col>
 							<v-col cols="12">
-								<span class="custom-label">模型名称</span>
+								<span class="custom-label">{{ t('modelConfig.labelModelName') }}</span>
 								<v-text-field
 									v-model="form.modelName"
-									placeholder="例如: gpt-4o 或 deepseek-chat"
+									:placeholder="t('modelConfig.modelNamePlaceholder')"
 									variant="outlined"
 									density="compact"
 									:rules="[rules.required]"
 								/>
 							</v-col>
 							<v-col cols="12">
-								<span class="custom-label">API 密钥 (API Key)</span>
+								<span class="custom-label">{{ t('modelConfig.labelApiKey') }}</span>
 								<v-text-field
 									v-model="form.apiKey"
 									:type="showApiKey ? 'text' : 'password'"
@@ -295,12 +301,14 @@
 									"
 									:placeholder="
 										dialog.mode === 'edit'
-											? `${storedApiKeyMask} 已保存，留空表示不修改`
+											? t('modelConfig.apiKeySavedPlaceholder', {
+													mask: storedApiKeyMask,
+												})
 											: 'sk-...'
 									"
 									:hint="
 										dialog.mode === 'edit'
-											? '出于安全考虑，已保存的完整密钥不会回显；输入新密钥可进行替换。'
+											? t('modelConfig.apiKeySecurityHint')
 											: undefined
 									"
 									:persistent-hint="dialog.mode === 'edit'"
@@ -317,7 +325,7 @@
 								/>
 							</v-col>
 							<v-col cols="12">
-								<span class="custom-label">接口地址 (Base URL)</span>
+								<span class="custom-label">{{ t('modelConfig.labelBaseUrl') }}</span>
 								<v-text-field
 									v-model="form.baseUrl"
 									placeholder="https://api.example.com/v1"
@@ -329,41 +337,47 @@
 
 							<!-- Extra fields from original but styled like new -->
 							<v-col v-if="form.modelType === 'CHAT'" cols="12">
-								<span class="custom-label">Completions 路径</span>
+								<span class="custom-label">{{
+									t('modelConfig.labelCompletionsPath')
+								}}</span>
 								<v-text-field
 									v-model="form.completionsPath"
-									placeholder="默认 /v1/chat/completions"
+									:placeholder="t('modelConfig.completionsPathPlaceholder')"
 									variant="outlined"
 									density="compact"
 								/>
 							</v-col>
 
 							<v-col v-if="form.modelType === 'EMBEDDING'" cols="12">
-								<span class="custom-label">Embeddings 路径</span>
+								<span class="custom-label">{{
+									t('modelConfig.labelEmbeddingsPath')
+								}}</span>
 								<v-text-field
 									v-model="form.embeddingsPath"
-									placeholder="默认 /v1/embeddings"
+									:placeholder="t('modelConfig.embeddingsPathPlaceholder')"
 									variant="outlined"
 									density="compact"
 								/>
 							</v-col>
 
 							<v-col cols="6">
-								<span class="custom-label"
-									>温度系数: {{ form.temperature }}</span
-								>
+								<span class="custom-label">{{
+									t('modelConfig.labelTemperature', {
+										value: form.temperature,
+									})
+								}}</span>
 								<v-slider
 									v-model="form.temperature"
 									min="0"
 									max="2"
 									step="0.1"
-									color="black"
+									color="var(--da-text)"
 									density="compact"
 									hide-details
 								/>
 							</v-col>
 							<v-col cols="6">
-								<span class="custom-label">最大 Token 数</span>
+								<span class="custom-label">{{ t('modelConfig.labelMaxTokens') }}</span>
 								<v-text-field
 									v-model.number="form.maxTokens"
 									type="number"
@@ -379,16 +393,15 @@
 
 				<v-card-actions class="pa-4 pt-0">
 					<v-spacer></v-spacer>
-					<v-btn variant="text" class="text-none" @click="closeDialog"
-						>取消</v-btn
-					>
+					<v-btn variant="text" class="text-none" @click="closeDialog">{{
+						t('modelConfig.cancel')
+					}}</v-btn>
 					<v-btn
-						color="black"
-						class="text-none px-8"
+						class="btn-inverse text-none px-8"
 						elevation="0"
 						:loading="saving"
 						@click="handleSubmit"
-						>确认保存</v-btn
+						>{{ t('modelConfig.confirmSave') }}</v-btn
 					>
 				</v-card-actions>
 			</v-card>
@@ -404,6 +417,7 @@ import modelConfigService, {
 } from '@/services/modelConfig';
 
 const { $tip } = useNuxtApp();
+const { t } = useI18n();
 
 const providerOptions = [
 	{ title: 'DeepSeek', value: 'deepseek' },
@@ -456,17 +470,20 @@ const dialog = reactive<{
 	presetTab: 'CHAT',
 });
 
-const rules = {
+// 用 computed 包一层，切语言后校验消息才会跟着更新
+const rules = computed(() => ({
 	required: (value: string | number | null | undefined) =>
 		value !== null && value !== undefined && value !== ''
 			? true
-			: '该字段为必填项',
+			: t('modelConfig.ruleRequired'),
 	maxTokens: (value: number) =>
-		value >= 100 && value <= 10000 ? true : 'Token 范围需在 100 - 10000 之间',
-};
+		value >= 100 && value <= 10000 ? true : t('modelConfig.ruleMaxTokens'),
+}));
 
 const dialogTitle = computed(() =>
-	dialog.mode === 'edit' ? '编辑模型配置' : '新增模型配置',
+	dialog.mode === 'edit'
+		? t('modelConfig.dialogEditTitle')
+		: t('modelConfig.dialogCreateTitle'),
 );
 
 const filteredModels = computed(() =>
@@ -501,7 +518,7 @@ const fetchConfigs = async () => {
 		console.log(response);
 		configs.value = response || [];
 	} catch {
-		$tip('获取模型配置失败，请稍后重试', {
+		$tip(t('modelConfig.fetchFailed'), {
 			icon: 'mdi-alert-circle',
 			color: 'error',
 		});
@@ -544,17 +561,24 @@ const submitConfig = async (isUpdate: boolean) => {
 		}
 
 		if (result.success) {
-			$tip(isUpdate ? '配置更新成功' : '配置创建成功');
+			$tip(
+				isUpdate
+					? t('modelConfig.updateSuccess')
+					: t('modelConfig.createSuccess'),
+			);
 			closeDialog();
 			fetchConfigs();
 		} else {
-			$tip(result.message || '操作失败，请重试', {
+			$tip(result.message || t('modelConfig.operationFailedRetry'), {
 				icon: 'mdi-alert-circle',
 				color: 'error',
 			});
 		}
 	} catch {
-		$tip('请求失败，请检查网络', { icon: 'mdi-alert-circle', color: 'error' });
+		$tip(t('modelConfig.requestFailedNetwork'), {
+			icon: 'mdi-alert-circle',
+			color: 'error',
+		});
 	} finally {
 		saving.value = false;
 	}
@@ -568,24 +592,27 @@ const handleSubmit = async () => {
 
 const handleDelete = async (model: ModelConfig) => {
 	if (!model.id) {
-		$tip('模型ID不存在', { icon: 'mdi-alert-circle', color: 'error' });
+		$tip(t('modelConfig.modelIdMissing'), {
+			icon: 'mdi-alert-circle',
+			color: 'error',
+		});
 		return;
 	}
 	deletingId.value = model.id ?? null;
 	showConfirm({
-		title: '确认删除',
-		message: `你确认要删除 ${model.modelName} 吗？`,
+		title: t('modelConfig.deleteConfirmTitle'),
+		message: t('modelConfig.deleteConfirmMessage', { name: model.modelName }),
 		icon: 'mdi-help-circle',
-		confirmText: '确认',
+		confirmText: t('modelConfig.confirm'),
 		onConfirm: async () => {
 			const result = await modelConfigService.delete(
 				model.id as unknown as number,
 			);
 			if (result.success) {
-				$tip('模型已删除');
+				$tip(t('modelConfig.deleteSuccess'));
 				fetchConfigs();
 			} else {
-				$tip(result.message || '删除失败', {
+				$tip(result.message || t('modelConfig.deleteFailed'), {
 					icon: 'mdi-alert-circle',
 					color: 'error',
 				});
@@ -599,7 +626,7 @@ const handleActivate = async (model: ModelConfig) => {
 	if (!model.id) return;
 	if (
 		model.modelType === 'EMBEDDING' &&
-		!window.confirm('切换嵌入模型会导致现有向量数据失效，确定继续吗？')
+		!window.confirm(t('modelConfig.switchEmbeddingWarning'))
 	) {
 		return;
 	}
@@ -608,16 +635,19 @@ const handleActivate = async (model: ModelConfig) => {
 	try {
 		const result = await modelConfigService.activate(model.id);
 		if (result.success) {
-			$tip('已设置为默认模型');
+			$tip(t('modelConfig.activateSuccess'));
 			fetchConfigs();
 		} else {
-			$tip(result.message || '设置失败', {
+			$tip(result.message || t('modelConfig.activateFailed'), {
 				icon: 'mdi-alert-circle',
 				color: 'error',
 			});
 		}
 	} catch {
-		$tip('操作失败，请检查网络', { icon: 'mdi-alert-circle', color: 'error' });
+		$tip(t('modelConfig.operationFailedNetwork'), {
+			icon: 'mdi-alert-circle',
+			color: 'error',
+		});
 	} finally {
 		activatingId.value = null;
 	}
@@ -625,22 +655,25 @@ const handleActivate = async (model: ModelConfig) => {
 
 const handleTestConnection = async (model: ModelConfig) => {
 	if (!model.id) {
-		$tip('模型ID不存在', { icon: 'mdi-alert-circle', color: 'error' });
+		$tip(t('modelConfig.modelIdMissing'), {
+			icon: 'mdi-alert-circle',
+			color: 'error',
+		});
 		return;
 	}
 	testingId.value = model.id;
 	try {
 		const result = await modelConfigService.testConnection(model.id);
 		if (result.success) {
-			$tip(result.message || '连接测试成功');
+			$tip(result.message || t('modelConfig.testSuccess'));
 		} else {
-			$tip(result.message || '连接测试失败', {
+			$tip(result.message || t('modelConfig.testFailed'), {
 				icon: 'mdi-alert-circle',
 				color: 'error',
 			});
 		}
 	} catch {
-		$tip('连接测试失败，请检查网络', {
+		$tip(t('modelConfig.testFailedNetwork'), {
 			icon: 'mdi-alert-circle',
 			color: 'error',
 		});
@@ -665,37 +698,59 @@ onMounted(fetchConfigs);
 
 <style scoped>
 .model-config-container {
-	background-color: #f8fafc;
+	background-color: var(--da-surface-soft);
 	min-height: 100%;
 }
 
-.text-slate-900 {
-	color: #0f172a;
+.page-title {
+	color: var(--da-text);
+}
+
+/* 浅色下近似原来的 black 按钮，深色下自动反相保证可读 */
+.btn-inverse {
+	background-color: var(--da-text) !important;
+	color: var(--da-surface) !important;
 }
 
 .model-item-card {
 	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-	border: 1px solid #e2e8f0 !important;
-	background-color: #ffffff !important;
+	border: 1px solid var(--da-border) !important;
+	background-color: var(--da-surface) !important;
 }
 
 .model-item-card:hover {
-	border-color: #94a3b8 !important;
+	border-color: var(--da-text-faint) !important;
 	transform: translateY(-2px);
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 4px 20px var(--da-shadow-faint);
 }
 
 .model-item-card.is-active {
-	border-color: #2563eb !important;
-	background-color: #f0f7ff !important;
+	border-color: var(--da-primary-strong) !important;
+	background-color: var(--da-primary-soft) !important;
 }
 
 .border-dashed {
-	border: 2px dashed #e2e8f0 !important;
+	border: 2px dashed var(--da-border) !important;
+}
+
+.empty-state {
+	background-color: var(--da-surface);
+}
+
+.empty-icon {
+	color: var(--da-border);
+}
+
+.empty-title {
+	color: var(--da-text-muted);
+}
+
+.empty-text {
+	color: var(--da-text-faint);
 }
 
 .v-tabs {
-	border-bottom: 1px solid #e2e8f0;
+	border-bottom: 1px solid var(--da-border);
 }
 
 .v-tab {
@@ -736,7 +791,7 @@ onMounted(fetchConfigs);
 
 /* 分段开关样式优化 */
 .segmented-control {
-	background-color: #f1f5f9 !important;
+	background-color: var(--da-surface-mute) !important;
 	padding: 4px !important;
 	height: 48px !important;
 	border: none !important;
@@ -747,12 +802,12 @@ onMounted(fetchConfigs);
 	height: 40px !important;
 	font-weight: 600 !important;
 	letter-spacing: 0.02em !important;
-	color: #64748b !important;
+	color: var(--da-text-muted) !important;
 }
 
 .segmented-control .v-btn--selected {
-	background-color: #ffffff !important;
-	color: #0f172a !important;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+	background-color: var(--da-surface) !important;
+	color: var(--da-text) !important;
+	box-shadow: 0 2px 8px var(--da-shadow-faint) !important;
 }
 </style>

@@ -10,7 +10,7 @@
 | title | `string` | - | 对话框标题 |
 | message | `string` | - | 提示消息内容 |
 | prependIcon | `string` | 'mdi-help-circle' | 标题前的图标 |
-| confirmText | `string` | '确认' | 确认按钮的文字 |
+| confirmText | `string` | 按当前语言取「确认」 | 确认按钮的文字 |
 
 ## Events
 | 名称 | 描述 |

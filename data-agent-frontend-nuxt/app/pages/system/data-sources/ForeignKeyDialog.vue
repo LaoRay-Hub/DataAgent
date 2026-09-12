@@ -28,7 +28,7 @@
 				<div class="d-flex align-center">
 					<v-icon color="primary" class="mr-3">mdi-relation-one-to-many</v-icon>
 					<span class="font-weight-bold"
-						>逻辑外键配置 - {{ datasourceName }}</span
+						>{{ t('dataSource.fkConfig') }} - {{ datasourceName }}</span
 					>
 				</div>
 				<v-btn
@@ -41,42 +41,45 @@
 
 			<v-card-text class="pa-6">
 				<div class="mb-8">
-					<div class="text-overline text-grey-darken-1 mb-2">
-						已生效的关系列表
+					<div class="text-overline mb-2" style="color: var(--da-text-muted)">
+						{{ t('dataSource.activeRelations') }}
 					</div>
 					<v-table
 						density="comfortable"
 						class="border rounded-lg overflow-hidden"
 					>
-						<thead class="bg-grey-lighten-4">
+						<thead style="background-color: var(--da-surface-mute)">
 							<tr>
-								<th class="text-left">主表 (Source)</th>
-								<th class="text-center">关系</th>
-								<th class="text-left">关联表 (Target)</th>
-								<th class="text-right">操作</th>
+								<th class="text-left">{{ t('dataSource.sourceTableCol') }}</th>
+								<th class="text-center">{{ t('dataSource.relation') }}</th>
+								<th class="text-left">{{ t('dataSource.targetTableCol') }}</th>
+								<th class="text-right">{{ t('dataSource.actions') }}</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr v-for="(fk, index) in relations" :key="index">
 								<td>
-									<div class="font-weight-bold text-blue-darken-2">
+									<div class="font-weight-bold" style="color: var(--da-primary-text)">
 										{{ fk.sourceTableName }}
 									</div>
-									<div class="text-caption text-grey">
+									<div class="text-caption" style="color: var(--da-text-muted)">
 										{{ fk.sourceColumnName }}
 									</div>
 								</td>
 								<td class="text-center">
-									<v-icon size="16" color="grey">mdi-link-variant</v-icon>
-									<div class="text-caption font-weight-bold text-grey-darken-2">
+									<v-icon size="16" color="var(--da-text-faint)">mdi-link-variant</v-icon>
+									<div
+										class="text-caption font-weight-bold"
+										style="color: var(--da-text-secondary)"
+									>
 										{{ fk.relationType }}
 									</div>
 								</td>
 								<td>
-									<div class="font-weight-bold text-green-darken-2">
+									<div class="font-weight-bold" style="color: var(--da-success-text)">
 										{{ fk.targetTableName }}
 									</div>
-									<div class="text-caption text-grey">
+									<div class="text-caption" style="color: var(--da-text-muted)">
 										{{ fk.targetColumnName }}
 									</div>
 								</td>
@@ -92,71 +95,71 @@
 								</td>
 							</tr>
 							<tr v-if="relations.length === 0">
-								<td colspan="4" class="text-center text-grey py-4">
-									暂无逻辑外键配置
+								<td colspan="4" class="text-center py-4" style="color: var(--da-text-muted)">
+									{{ t('dataSource.noRelations') }}
 								</td>
 							</tr>
 						</tbody>
 					</v-table>
 				</div>
 
-				<div class="bg-blue-grey-lighten-5 pa-5 rounded-lg border">
+				<div class="pa-5 rounded-lg border" style="background-color: var(--da-surface-soft)">
 					<v-row dense>
 						<v-col cols="12" md="5">
 							<v-select
 								v-model="fkForm.sourceTableName"
-								label="主表"
+								:label="t('dataSource.labelSourceTable')"
 								:items="tables"
 								variant="outlined"
 								density="compact"
-								placeholder="请选择主表"
+								:placeholder="t('dataSource.placeholderSelectSourceTable')"
 								clearable
 								@update:model-value="fetchColumns($event ?? '', 'source')"
 							/>
 							<v-select
 								v-model="fkForm.sourceColumnName"
-								label="主表字段"
+								:label="t('dataSource.labelSourceColumn')"
 								:items="sourceColumns"
 								variant="outlined"
 								density="compact"
 								:disabled="!fkForm.sourceTableName"
 								:loading="loadingSourceColumns"
-								placeholder="先选择主表"
+								:placeholder="t('dataSource.placeholderSelectSourceFirst')"
 								clearable
 							/>
 						</v-col>
 						<v-col cols="12" md="2" class="d-flex align-center justify-center">
-							<v-icon color="grey-lighten-1" size="32"
+							<v-icon color="var(--da-text-faint)" size="32"
 								>mdi-arrow-right-bold</v-icon
 							>
 						</v-col>
 						<v-col cols="12" md="5">
 							<v-select
 								v-model="fkForm.targetTableName"
-								label="关联表"
+								:label="t('dataSource.labelTargetTable')"
 								:items="tables"
 								variant="outlined"
 								density="compact"
-								placeholder="请选择关联表"
+								:placeholder="t('dataSource.placeholderSelectTargetTable')"
 								clearable
 								@update:model-value="fetchColumns($event ?? '', 'target')"
 							/>
 							<v-select
 								v-model="fkForm.targetColumnName"
-								label="关联字段"
+								:label="t('dataSource.labelTargetColumn')"
 								:items="targetColumns"
 								variant="outlined"
 								density="compact"
 								:disabled="!fkForm.targetTableName"
 								:loading="loadingTargetColumns"
-								placeholder="先选择关联表"
+								:placeholder="t('dataSource.placeholderSelectTargetFirst')"
 								clearable
 							/>
 						</v-col>
 						<v-col cols="12" class="d-flex ga-2 mt-2">
 							<v-select
 								v-model="fkForm.relationType"
-								label="关系"
+								:label="t('dataSource.relation')"
 								:items="['1:1', '1:N', 'N:1']"
 								variant="outlined"
 								density="compact"
@@ -170,7 +173,7 @@
 								:loading="addingRelation"
 								:disabled="!isFormValid"
 								@click="handleAdd"
-								>添加关系</v-btn
+								>{{ t('dataSource.addRelation') }}</v-btn
 							>
 						</v-col>
 					</v-row>
@@ -221,6 +224,7 @@ const isFormValid = computed(
 );
 
 const { $tip } = useNuxtApp();
+const { t } = useI18n();
 
 watch(
 	() => props.modelValue,
@@ -235,7 +239,7 @@ watch(
 			if (relationsRes.success) relations.value = relationsRes.data || [];
 			tables.value = tableData || [];
 		} catch {
-			$tip('加载外键配置失败', { color: 'error', icon: 'mdi-alert-circle' });
+			$tip(t('dataSource.loadFkFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 		}
 	},
 );
@@ -287,16 +291,16 @@ async function handleAdd() {
 		});
 		if (res.success && res.data) {
 			relations.value.push(res.data);
-			$tip('添加关系成功');
+			$tip(t('dataSource.addRelationSuccess'));
 			resetForm();
 		} else {
-			$tip(res.message || '添加失败', {
+			$tip(res.message || t('dataSource.addFailed'), {
 				color: 'error',
 				icon: 'mdi-alert-circle',
 			});
 		}
 	} catch {
-		$tip('添加失败', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('dataSource.addFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 	} finally {
 		addingRelation.value = false;
 	}
@@ -305,9 +309,9 @@ async function handleAdd() {
 function handleDelete(relationId: number) {
 	const { showConfirm } = useConfirm();
 	showConfirm({
-		title: '删除确认',
-		message: '确定要删除该逻辑外键吗？',
-		confirmText: '删除',
+		title: t('dataSource.deleteConfirmTitle'),
+		message: t('dataSource.deleteFkConfirmMessage'),
+		confirmText: t('dataSource.delete'),
 		icon: 'mdi-alert-circle',
 		onConfirm: async () => {
 			deletingRelationId.value = relationId;
@@ -320,15 +324,18 @@ function handleDelete(relationId: number) {
 					relations.value = relations.value.filter(
 						(item) => item.id !== relationId,
 					);
-					$tip('删除成功');
+					$tip(t('dataSource.deleteSuccess'));
 				} else {
-					$tip(res.message || '删除失败', {
+					$tip(res.message || t('dataSource.deleteFailed'), {
 						color: 'error',
 						icon: 'mdi-alert-circle',
 					});
 				}
 			} catch {
-				$tip('删除失败', { color: 'error', icon: 'mdi-alert-circle' });
+				$tip(t('dataSource.deleteFailed'), {
+					color: 'error',
+					icon: 'mdi-alert-circle',
+				});
 			} finally {
 				deletingRelationId.value = null;
 			}

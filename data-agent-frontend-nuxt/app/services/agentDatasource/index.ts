@@ -19,6 +19,7 @@
  */
 
 import axios from 'axios';
+import { translate } from '../../composables/useI18n';
 import type { ApiResponse } from './common';
 import type { AgentDatasource } from './datasource';
 
@@ -58,7 +59,7 @@ class AgentDatasourceService {
       const response = await axios.post<ApiResponse<null>>(`${BASE_URL_FUNC(agentId)}/init`);
       return response.data;
     } catch (error) {
-      throw new Error(`初始化Schema失败: ${error}`);
+      throw new Error(translate('error.initSchemaFailed', { detail: String(error) }));
     }
   }
 
@@ -77,7 +78,7 @@ class AgentDatasourceService {
       }
       throw new Error(response.data.message);
     } catch (error) {
-      throw new Error(`获取数据源列表失败: ${error}`);
+      throw new Error(translate('error.datasourceListFailed', { detail: String(error) }));
     }
   }
 
@@ -93,13 +94,13 @@ class AgentDatasourceService {
       );
       if (response.data.success) {
         if (response.data.data === undefined) {
-          throw new Error('后端错误');
+          throw new Error(translate('error.backendError'));
         }
         return response.data.data;
       }
       throw new Error(response.data.message);
     } catch (error) {
-      throw new Error(`获取数据源列表失败: ${error}`);
+      throw new Error(translate('error.datasourceListFailed', { detail: String(error) }));
     }
   }
 
@@ -119,7 +120,7 @@ class AgentDatasourceService {
       );
       return response.data;
     } catch (error) {
-      throw new Error(`添加数据源失败: ${error}`);
+      throw new Error(translate('error.addDatasourceFailed', { detail: String(error) }));
     }
   }
 
@@ -139,7 +140,7 @@ class AgentDatasourceService {
       );
       return response.data;
     } catch (error) {
-      throw new Error(`移除数据源失败: ${error}`);
+      throw new Error(translate('error.removeDatasourceFailed', { detail: String(error) }));
     }
   }
 
@@ -160,7 +161,7 @@ class AgentDatasourceService {
       );
       return response.data;
     } catch (error) {
-      throw new Error(`切换数据源状态失败: ${error}`);
+      throw new Error(translate('error.toggleDatasourceFailed', { detail: String(error) }));
     }
   }
 
@@ -178,7 +179,7 @@ class AgentDatasourceService {
       const response = await axios.post<ApiResponse<null>>(`${BASE_URL_FUNC(agentId)}/tables`, dto);
       return response.data;
     } catch (error) {
-      throw new Error(`更新数据源表列表失败: ${error}`);
+      throw new Error(translate('error.updateDatasourceTablesFailed', { detail: String(error) }));
     }
   }
 }

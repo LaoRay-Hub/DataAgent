@@ -14,6 +14,33 @@
  * limitations under the License.
  */
 
+<script setup lang="ts">
+import { useLocale, useTheme } from 'vuetify';
+
+const embed = useEmbedStore();
+const theme = useTheme();
+const vuetifyLocale = useLocale();
+const { setLocale } = useI18n();
+
+watch(
+  () => embed.theme,
+  (name) => {
+    theme.change(name);
+    document.documentElement.classList.toggle('da-dark', name === 'dark');
+  },
+  { immediate: true },
+);
+
+watch(
+  () => embed.locale,
+  (value) => {
+    setLocale(value);
+    vuetifyLocale.current.value = value === 'en-US' ? 'en' : 'zh-Hans';
+  },
+  { immediate: true },
+);
+</script>
+
 <template>
   <NuxtLayout>
     <NuxtPage />

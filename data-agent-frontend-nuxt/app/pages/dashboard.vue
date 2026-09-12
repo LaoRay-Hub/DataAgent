@@ -16,10 +16,14 @@
 
 <template>
   <section class="page-shell">
-    <h1>数据看板</h1>
-    <p>这里将呈现业务可视化看板。</p>
+    <h1>{{ t('page.dashboardTitle') }}</h1>
+    <p>{{ t('page.dashboardSubtitle') }}</p>
   </section>
 </template>
+
+<script setup lang="ts">
+const { t } = useI18n();
+</script>
 
 <style scoped>
 .page-shell {

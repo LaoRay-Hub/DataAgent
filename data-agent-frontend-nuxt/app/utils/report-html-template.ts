@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { translate, useI18n } from '../composables/useI18n';
+
 const MARKED_URL = 'https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/marked/12.0.0/marked.min.js';
 const ECHARTS_URL = 'https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/echarts/5.5.0/echarts.min.js';
 
@@ -79,13 +81,15 @@ export function normalizeChartLayout(
 
 export function buildReportHtml(markdownContent: string): string {
 	const escapedContent = escapeForHtml(markdownContent);
+	const { locale } = useI18n();
+	const docLang = locale.value === 'en-US' ? 'en' : 'zh-CN';
 
 	return `<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="${docLang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>分析报告</title>
+<title>${translate('report.docTitle')}</title>
 <script src="${MARKED_URL}"></script>
 <script src="${ECHARTS_URL}"></script>
 <style>
@@ -119,7 +123,7 @@ ${normalizeChartLayout.toString()}
 
 window.onload = function() {
   if (typeof marked === 'undefined') {
-    document.getElementById('render-target').innerHTML = '<p style="color:red;">Marked库加载失败，请检查网络</p>';
+    document.getElementById('render-target').innerHTML = '<p style="color:red;">${translate('report.markedLoadFailed')}</p>';
     return;
   }
   var rawDiv = document.getElementById('raw-markdown');
@@ -143,7 +147,7 @@ window.onload = function() {
         myChart.setOption(option);
         window.addEventListener('resize', function() { myChart.resize(); });
       } catch(e) {
-        box.innerHTML = '<div class="chart-error"><b>图表渲染错误</b><br/>' + e.message + '</div>';
+        box.innerHTML = '<div class="chart-error"><b>${translate('report.chartRenderError')}</b><br/>' + e.message + '</div>';
       }
     });
   }

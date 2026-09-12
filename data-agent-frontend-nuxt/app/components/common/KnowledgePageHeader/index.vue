@@ -35,6 +35,6 @@ defineProps<{
 
 <style scoped>
 .knowledge-header__title {
-	color: #1565c0;
+	color: var(--da-primary-heading);
 }
 </style>

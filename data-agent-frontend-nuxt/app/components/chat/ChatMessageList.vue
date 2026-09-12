@@ -44,7 +44,7 @@
 						<!-- ── AI messages ──────────────────────────────────── -->
 						<div v-else class="row ai-row">
 							<v-avatar
-								color="blue-darken-3"
+								color="#1565c0"
 								size="34"
 								rounded="lg"
 								class="avatar"
@@ -129,7 +129,7 @@
 					>
 						<div class="row ai-row">
 							<v-avatar
-								color="blue-darken-3"
+								color="#1565c0"
 								size="34"
 								rounded="lg"
 								class="avatar"
@@ -149,7 +149,7 @@
 					v-if="store.isStreaming && store.nodeBlocks.length > 0"
 					class="row ai-row"
 				>
-					<v-avatar color="blue-darken-3" size="34" rounded="lg" class="avatar">
+					<v-avatar color="#1565c0" size="34" rounded="lg" class="avatar">
 						<v-icon size="18" color="white">mdi-robot</v-icon>
 					</v-avatar>
 					<v-card class="ai-card timeline-card" elevation="1">
@@ -163,7 +163,7 @@
 					class="row ai-row"
 				>
 					<v-avatar
-						color="blue-darken-3"
+						color="#1565c0"
 						size="34"
 						rounded="lg"
 						class="avatar"
@@ -179,7 +179,7 @@
 					v-else-if="store.isStreaming && store.nodeBlocks.length === 0"
 					class="row ai-row"
 				>
-					<v-avatar color="blue-darken-3" size="34" rounded="lg" class="avatar">
+					<v-avatar color="#1565c0" size="34" rounded="lg" class="avatar">
 						<v-icon size="18" color="white">mdi-robot</v-icon>
 					</v-avatar>
 					<v-card class="ai-card" elevation="1">
@@ -362,8 +362,8 @@ watch(
 
 /* ── User card ───────────────────────────────────────────────────────────────── */
 .user-card {
-	background: #3b82f6 !important;
-	color: white !important;
+	background: var(--da-primary) !important;
+	color: var(--da-text-on-dark) !important;
 	padding: 10px 16px;
 	border-radius: 16px 16px 4px 16px !important;
 	font-size: 14px;
@@ -380,8 +380,8 @@ watch(
 	line-height: 1.7;
 	max-width: 75%;
 	word-break: break-word;
-	color: #1e293b;
-	background: #fff !important;
+	color: var(--da-text-strong);
+	background: var(--da-surface) !important;
 }
 
 /* Report card: full width like markdown content */
@@ -410,7 +410,7 @@ watch(
 .dot {
 	width: 7px;
 	height: 7px;
-	background: #94a3b8;
+	background: var(--da-text-faint);
 	border-radius: 50%;
 	animation: dotBounce 1.2s infinite;
 }
@@ -451,18 +451,18 @@ watch(
 	margin-bottom: 3px;
 }
 .md-body :deep(code:not(pre code)) {
-	background: #f6f8fa;
-	border: 1px solid #e1e4e8;
+	background: var(--da-code-bg);
+	border: 1px solid var(--da-border-soft);
 	padding: 2px 6px;
 	border-radius: 3px;
 	font-size: 12.5px;
 	font-family: 'Monaco', 'Menlo', 'Fira Code', monospace;
-	color: #e83e8c;
+	color: var(--da-accent);
 }
 .md-body :deep(blockquote) {
-	border-left: 3px solid #3b82f6;
+	border-left: 3px solid var(--da-primary);
 	padding-left: 12px;
-	color: #64748b;
+	color: var(--da-text-muted);
 	margin: 6px 0;
 }
 .md-body :deep(table) {
@@ -480,13 +480,13 @@ watch(
 }
 .md-body :deep(tr) {
 	display: table-row;
-	border-top: 1px solid #c6cbd1;
+	border-top: 1px solid var(--da-border-strong);
 }
 .md-body :deep(th) {
 	display: table-cell;
-	background: #f1f5f9;
+	background: var(--da-surface-mute);
 	padding: 7px 12px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	font-weight: 600;
 	font-size: 13px;
 	text-align: left;
@@ -494,19 +494,19 @@ watch(
 .md-body :deep(td) {
 	display: table-cell;
 	padding: 7px 12px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--da-border);
 	font-size: 13px;
 }
 .md-body :deep(tr:nth-child(even)) {
-	background: #f8fafc;
+	background: var(--da-surface-soft);
 }
 .md-body :deep(a) {
-	color: #2563eb;
+	color: var(--da-primary-heading);
 	text-decoration: underline;
 }
 .md-body :deep(hr) {
 	border: none;
-	border-top: 1px solid #e2e8f0;
+	border-top: 1px solid var(--da-border);
 	margin: 12px 0;
 }
 .md-body :deep(strong) {
@@ -516,22 +516,22 @@ watch(
 /* ── Code block with header ─────────────────────────────────────────────────── */
 .md-body :deep(.code-block-wrapper) {
 	margin: 10px 0;
-	border: 1px solid #e1e4e8;
+	border: 1px solid var(--da-border-soft);
 	border-radius: 6px;
 	overflow: auto;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 }
 .md-body :deep(.code-block-header) {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 	padding: 6px 10px;
-	border-bottom: 1px solid #e1e4e8;
+	border-bottom: 1px solid var(--da-border-soft);
 	font-size: 11px;
 }
 .md-body :deep(.code-language) {
-	color: #6a737d;
+	color: var(--da-code-label);
 	font-weight: 600;
 	font-family: 'Monaco', 'Menlo', monospace;
 	font-size: 10px;
@@ -539,29 +539,29 @@ watch(
 }
 .md-body :deep(.code-copy-button) {
 	background: transparent;
-	border: 1px solid #d1d5da;
+	border: 1px solid var(--da-border-strong);
 	padding: 3px 10px;
 	border-radius: 4px;
 	font-size: 10px;
 	cursor: pointer;
 	transition: all 0.2s;
-	color: #24292e;
+	color: var(--da-text);
 }
 .md-body :deep(.code-copy-button:hover) {
-	background: #f3f4f6;
-	border-color: #c6cbd1;
+	background: var(--da-surface-alt);
+	border-color: var(--da-border-strong);
 }
 .md-body :deep(.code-copy-button.copied) {
-	background: #28a745;
-	border-color: #28a745;
-	color: white;
+	background: var(--da-success);
+	border-color: var(--da-success);
+	color: var(--da-text-on-dark);
 }
 .md-body :deep(pre.hljs) {
 	margin: 0;
 	padding: 10px;
 	overflow-x: auto;
 	overflow-y: hidden;
-	background: #f6f8fa;
+	background: var(--da-code-bg);
 	font-size: 12px;
 	line-height: 1.4;
 	white-space: pre;
@@ -586,11 +586,11 @@ watch(
 	background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-	background: #cbd5e1;
+	background: var(--da-border-faint);
 	border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-	background: #94a3b8;
+	background: var(--da-text-faint);
 }
 
 /* ── Status banners (warning / error) ────────────────────────────────────────── */
@@ -605,14 +605,14 @@ watch(
 	max-width: 75%;
 }
 .status-banner--warning {
-	background: #fffbeb;
-	border: 1px solid #fcd34d;
-	color: #92400e;
+	background: var(--da-warning-soft);
+	border: 1px solid var(--da-warning-text);
+	color: var(--da-warning-text-strong);
 }
 .status-banner--error {
-	background: #fef2f2;
-	border: 1px solid #fca5a5;
-	color: #991b1b;
+	background: var(--da-danger-soft);
+	border: 1px solid var(--da-danger-border);
+	color: var(--da-danger-text-strong);
 }
 
 @media (max-width: 768px) {

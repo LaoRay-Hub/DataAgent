@@ -19,18 +19,25 @@ import type { NuxtError } from '#app';
 
 const props = defineProps<{ error: NuxtError }>();
 
+const { t } = useI18n();
+
 const statusCode = computed(() => props.error?.statusCode || 500);
 const statusText = computed(() => {
-	const map: Record<number, string> = {
-		400: '请求参数错误',
-		401: '身份认证失败',
-		403: '没有访问权限',
-		404: '页面不存在',
-		500: '服务器内部错误',
-		502: '网关错误',
-		503: '服务暂时不可用',
+	const keyMap: Record<number, string> = {
+		400: 'errorPage.status400',
+		401: 'errorPage.status401',
+		403: 'errorPage.status403',
+		404: 'errorPage.status404',
+		500: 'errorPage.status500',
+		502: 'errorPage.status502',
+		503: 'errorPage.status503',
 	};
-	return props.error?.statusMessage || map[statusCode.value] || '发生了未知错误';
+	const key = keyMap[statusCode.value];
+	return (
+		props.error?.statusMessage ||
+		(key ? t(key) : '') ||
+		t('errorPage.unknown')
+	);
 });
 
 const illustration = computed(() => {
@@ -47,7 +54,7 @@ const handleBack = () => clearError({ redirect: '/' });
 	<div class="error-page">
 		<div class="error-card">
 			<div class="error-icon-wrap">
-				<v-icon :icon="illustration" size="72" color="#94a3b8" />
+				<v-icon :icon="illustration" size="72" color="var(--da-text-faint)" />
 			</div>
 
 			<div class="error-code">{{ statusCode }}</div>
@@ -66,7 +73,7 @@ const handleBack = () => clearError({ redirect: '/' });
 					class="action-btn"
 					@click="handleBack"
 				>
-					返回首页
+					{{ t('errorPage.backHome') }}
 				</v-btn>
 				<v-btn
 					variant="outlined"
@@ -75,7 +82,7 @@ const handleBack = () => clearError({ redirect: '/' });
 					class="action-btn"
 					@click="() => reloadNuxtApp()"
 				>
-					刷新页面
+					{{ t('errorPage.reload') }}
 				</v-btn>
 			</div>
 		</div>
@@ -88,7 +95,11 @@ const handleBack = () => clearError({ redirect: '/' });
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+	background: linear-gradient(
+		135deg,
+		var(--da-surface-soft) 0%,
+		var(--da-border) 100%
+	);
 	padding: 24px;
 }
 
@@ -107,7 +118,7 @@ const handleBack = () => clearError({ redirect: '/' });
 	font-size: 96px;
 	font-weight: 800;
 	line-height: 1;
-	color: #cbd5e1;
+	color: var(--da-border-faint);
 	letter-spacing: -4px;
 	margin-bottom: 12px;
 }
@@ -115,13 +126,13 @@ const handleBack = () => clearError({ redirect: '/' });
 .error-text {
 	font-size: 20px;
 	font-weight: 600;
-	color: #334155;
+	color: var(--da-text-body);
 	margin-bottom: 8px;
 }
 
 .error-detail {
 	font-size: 14px;
-	color: #94a3b8;
+	color: var(--da-text-faint);
 	line-height: 1.6;
 	margin-bottom: 32px;
 	word-break: break-word;

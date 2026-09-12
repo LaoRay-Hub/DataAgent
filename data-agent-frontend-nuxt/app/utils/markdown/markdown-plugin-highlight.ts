@@ -21,6 +21,7 @@ import Python from 'highlight.js/lib/languages/python';
 import Json from 'highlight.js/lib/languages/json';
 import JavaScript from 'highlight.js/lib/languages/javascript';
 import type MarkdownIt from 'markdown-it';
+import { translate } from '../../composables/useI18n';
 
 hljs.registerLanguage('sql', Sql);
 hljs.registerLanguage('json', Json);
@@ -71,7 +72,7 @@ const highlightPlugin = (md: MarkdownIt) => {
 			<div class="code-block-header">
 				<span class="code-language">${escapeAttr(langLabel)}</span>
 				<button class="code-copy-button" onclick="copyCodeBlock(this)" data-code="${escapeAttr(code)}">
-					复制
+					${translate('ui.copy')}
 				</button>
 			</div>
 			<pre class="hljs"><code class="language-${langClass}">${highlighted}</code></pre>
@@ -95,17 +96,17 @@ if (typeof window !== 'undefined' && !window.copyCodeBlock) {
 		navigator.clipboard
 			.writeText(decodedCode)
 			.then(() => {
-				btn.textContent = '已复制!';
+				btn.textContent = translate('ui.copied');
 				btn.classList.add('copied');
-				window.__tipShow?.('复制成功');
+				window.__tipShow?.(translate('ui.copySuccess'));
 				setTimeout(() => {
 					btn.textContent = originalText;
 					btn.classList.remove('copied');
 				}, 2000);
 			})
 			.catch(() => {
-				btn.textContent = '复制失败';
-				window.__tipShow?.('复制失败', { color: 'error', icon: 'mdi-alert-circle' });
+				btn.textContent = translate('ui.copyFailed');
+				window.__tipShow?.(translate('ui.copyFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 				setTimeout(() => {
 					btn.textContent = originalText;
 				}, 2000);

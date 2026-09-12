@@ -17,28 +17,27 @@
 <template>
 	<section class="page-shell">
 		<KnowledgePageHeader
-			title="新建智能体"
-			subtitle="创建你的专属数据分析智能体，统一接入知识、提示词和语义能力。"
+			:title="t('agentEditor.pageTitle')"
+			:subtitle="t('agentEditor.pageSubtitle')"
 		>
 			<template #actions>
 				<v-btn
-					class="text-none bg-white"
-					style="border-color: #e2e8f0"
+					class="text-none back-btn"
 					variant="outlined"
 					prepend-icon="mdi-arrow-left"
 					@click="goBack"
 				>
-					返回列表
+					{{ t('agentEditor.backToList') }}
 				</v-btn>
 				<v-btn
-					color="blue-darken-3"
+					color="var(--da-primary-heading)"
 					prepend-icon="mdi-plus"
 					class="text-none px-6"
 					elevation="0"
 					:loading="loading"
 					@click="createAgent"
 				>
-					{{ loading ? '创建中...' : '创建智能体' }}
+					{{ loading ? t('agentEditor.creating') : t('agentEditor.createAgent') }}
 				</v-btn>
 			</template>
 		</KnowledgePageHeader>
@@ -46,8 +45,8 @@
 		<v-card variant="flat" border class="rounded-lg pa-6">
 			<v-form ref="formRef">
 				<div class="mb-6">
-					<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-						头像设置
+					<p class="text-body-2 font-weight-medium field-label mb-2">
+						{{ t('agentEditor.avatarSection') }}
 					</p>
 					<div class="d-flex align-center ga-4 flex-wrap">
 						<v-avatar size="88" rounded="lg" class="avatar-preview">
@@ -60,7 +59,7 @@
 								class="text-none"
 								@click="regenerateAvatar"
 							>
-								重新生成
+								{{ t('agentEditor.regenerateAvatar') }}
 							</v-btn>
 							<v-btn
 								variant="outlined"
@@ -69,7 +68,7 @@
 								:loading="uploading"
 								@click="triggerFileUpload"
 							>
-								{{ uploading ? '上传中...' : '上传图片' }}
+								{{ uploading ? t('agentEditor.uploading') : t('agentEditor.uploadImage') }}
 							</v-btn>
 							<input
 								ref="fileInput"
@@ -84,38 +83,38 @@
 
 				<v-row>
 					<v-col cols="12" md="6">
-						<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-							智能体名称 <span class="text-error">*</span>
+						<p class="text-body-2 font-weight-medium field-label mb-2">
+							{{ t('agentEditor.nameLabel') }} <span class="text-error">*</span>
 						</p>
 						<v-text-field
 							v-model="agentForm.name"
-							placeholder="请输入智能体名称"
+							:placeholder="t('agentEditor.namePlaceholder')"
 							variant="outlined"
 							density="compact"
-							:rules="[(v) => !!v?.trim() || '智能体名称不能为空']"
+							:rules="[(v) => !!v?.trim() || t('agentEditor.nameRequired')]"
 							hide-details="auto"
 						/>
 					</v-col>
 					<v-col cols="12" md="6">
-						<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-							分类 <span class="text-error">*</span>
+						<p class="text-body-2 font-weight-medium field-label mb-2">
+							{{ t('agentEditor.categoryLabel') }} <span class="text-error">*</span>
 						</p>
 						<v-text-field
 							v-model="agentForm.category"
-							placeholder="请输入智能体分类"
+							:placeholder="t('agentEditor.categoryPlaceholder')"
 							variant="outlined"
 							density="compact"
-							:rules="[(v) => !!v?.trim() || '分类不能为空']"
+							:rules="[(v) => !!v?.trim() || t('agentEditor.categoryRequired')]"
 							hide-details="auto"
 						/>
 					</v-col>
 					<v-col cols="12">
-						<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-							描述
+						<p class="text-body-2 font-weight-medium field-label mb-2">
+							{{ t('agentEditor.descriptionLabel') }}
 						</p>
 						<v-textarea
 							v-model="agentForm.description"
-							placeholder="请输入智能体描述"
+							:placeholder="t('agentEditor.descriptionPlaceholder')"
 							variant="outlined"
 							density="compact"
 							rows="3"
@@ -123,12 +122,12 @@
 						/>
 					</v-col>
 					<v-col cols="12">
-						<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-							智能体 Prompt
+						<p class="text-body-2 font-weight-medium field-label mb-2">
+							{{ t('agentEditor.promptLabel') }}
 						</p>
 						<v-textarea
 							v-model="agentForm.prompt"
-							placeholder="请输入智能体 Prompt"
+							:placeholder="t('agentEditor.promptPlaceholder')"
 							variant="outlined"
 							density="compact"
 							rows="4"
@@ -136,21 +135,21 @@
 						/>
 					</v-col>
 					<v-col cols="12" md="6">
-						<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-							标签 <span class="text-error">*</span>
+						<p class="text-body-2 font-weight-medium field-label mb-2">
+							{{ t('agentEditor.tagsLabel') }} <span class="text-error">*</span>
 						</p>
 						<v-text-field
 							v-model="agentForm.tags"
-							placeholder="多个标签使用逗号分隔"
+							:placeholder="t('agentEditor.tagsPlaceholder')"
 							variant="outlined"
 							density="compact"
-							:rules="[(v) => !!v?.trim() || '标签不能为空']"
+							:rules="[(v) => !!v?.trim() || t('agentEditor.tagsRequired')]"
 							hide-details="auto"
 						/>
 					</v-col>
 					<v-col cols="12" md="6">
-						<p class="text-body-2 font-weight-medium text-grey-darken-2 mb-2">
-							状态
+						<p class="text-body-2 font-weight-medium field-label mb-2">
+							{{ t('agentEditor.statusLabel') }}
 						</p>
 						<v-select
 							v-model="agentForm.status"
@@ -174,17 +173,19 @@ import { fileUploadApi } from '~/services/fileUpload/index';
 
 const router = useRouter();
 const { $tip } = useNuxtApp();
+const { t } = useI18n();
 
 const loading = ref(false);
 const uploading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const formRef = ref();
 
-const statusOptions = [
-	{ label: '待发布', value: 'draft' },
-	{ label: '已发布', value: 'published' },
-	{ label: '已下线', value: 'offline' },
-];
+// value 是提交给后端的枚举，label 需随语言切换，因此用 computed
+const statusOptions = computed(() => [
+	{ label: t('agentEditor.statusDraft'), value: 'draft' },
+	{ label: t('agentEditor.statusPublished'), value: 'published' },
+	{ label: t('agentEditor.statusOffline'), value: 'offline' },
+]);
 
 const agentForm = reactive({
 	name: '',
@@ -197,6 +198,7 @@ const agentForm = reactive({
 	humanReviewEnabled: false,
 });
 
+// 兜底头像会被写入数据库成为业务数据，其中的文案与配色保持原样、不做多语言处理
 function generateFallbackAvatar(): string {
 	const colors = ['3B82F6', '8B5CF6', '10B981', 'F59E0B', 'EF4444', '6366F1'];
 	const letters = ['AI', '数据', '智能', 'DA', 'BI', 'ML'];
@@ -223,11 +225,11 @@ async function handleFileUpload(event: Event) {
 	const file = target.files?.[0];
 	if (!file) return;
 	if (!file.type.startsWith('image/')) {
-		$tip('请选择图片文件', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('agentEditor.tipSelectImage'), { color: 'error', icon: 'mdi-alert-circle' });
 		return;
 	}
 	if (file.size > 5 * 1024 * 1024) {
-		$tip('图片大小不能超过5MB', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('agentEditor.tipImageTooLarge'), { color: 'error', icon: 'mdi-alert-circle' });
 		return;
 	}
 
@@ -242,13 +244,15 @@ async function handleFileUpload(event: Event) {
 		const response = await fileUploadApi.uploadAvatar(file);
 		if (response.success && response.url) {
 			agentForm.avatar = response.url;
-			$tip('头像上传成功');
+			$tip(t('agentEditor.tipAvatarUploaded'));
 		} else {
-			throw new Error(response.message || '上传失败');
+			throw new Error(response.message || t('agentEditor.uploadFailed'));
 		}
 	} catch (error) {
 		$tip(
-			`头像上传失败: ${error instanceof Error ? error.message : '未知错误'}`,
+			t('agentEditor.avatarUploadFailed', {
+				message: error instanceof Error ? error.message : t('agentEditor.unknownError'),
+			}),
 			{
 				color: 'error',
 				icon: 'mdi-alert-circle',
@@ -284,11 +288,13 @@ async function createAgent() {
 		};
 		const result = await agentService.create(payload);
 		$tip(
-			`智能体创建成功！状态：${payload.status === 'published' ? '已发布' : '草稿'}`,
+			payload.status === 'published'
+				? t('agentEditor.createSuccessPublished')
+				: t('agentEditor.createSuccessDraft'),
 		);
 		await router.push({ path: '/chat', query: { agentId: result.id } });
 	} catch {
-		$tip('创建失败，请重试', { color: 'error', icon: 'mdi-alert-circle' });
+		$tip(t('agentEditor.createFailed'), { color: 'error', icon: 'mdi-alert-circle' });
 	} finally {
 		loading.value = false;
 	}
@@ -304,7 +310,19 @@ onMounted(() => {
 	padding: 32px;
 }
 
+/* 原 bg-white + border-color: #e2e8f0，改用语义变量以适配深色；加 .v-btn 前缀压过 Vuetify 变体样式 */
+.v-btn.back-btn {
+	background-color: var(--da-surface);
+	border-color: var(--da-border);
+}
+
+/* 原 text-grey-darken-2（#616161），--da-text-muted 浅色值 #64748b 视觉等价 */
+.field-label {
+	color: var(--da-text-muted);
+}
+
 .avatar-preview {
-	border: 2px solid #e5e7eb;
+	/* 原 #e5e7eb，与 --da-border 浅色值 #e2e8f0 视觉等价 */
+	border: 2px solid var(--da-border);
 }
 </style>
