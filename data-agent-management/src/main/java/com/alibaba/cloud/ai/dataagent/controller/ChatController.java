@@ -33,6 +33,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
 import java.util.Map;
@@ -68,8 +70,9 @@ public class ChatController {
 	 * Create a new session
 	 */
 	@PostMapping("/agent/{id}/sessions")
+	// exchange 参数由 DpTenantAspect 用来在本线程重新绑定租户上下文，方法体内不直接使用
 	public ResponseEntity<ChatSession> createSession(@PathVariable(value = "id") Integer id,
-			@RequestBody(required = false) Map<String, Object> request) {
+			@RequestBody(required = false) Map<String, Object> request, ServerWebExchange exchange) {
 		String title = request != null ? (String) request.get("title") : null;
 		Long userId = request != null ? toUserId(request.get("userId")) : null;
 
@@ -95,6 +98,7 @@ public class ChatController {
 	 */
 	@GetMapping("/sessions/{sessionId}/messages")
 	public ResponseEntity<List<ChatMessage>> getSessionMessages(@PathVariable(value = "sessionId") String sessionId) {
+		chatSessionService.assertOwnedByCurrentTenant(sessionId);
 		List<ChatMessage> messages = chatMessageService.findBySessionId(sessionId);
 		return ResponseEntity.ok(messages);
 	}
@@ -104,11 +108,12 @@ public class ChatController {
 	 */
 	@PostMapping("/sessions/{sessionId}/messages")
 	public ResponseEntity<ChatMessage> saveMessage(@PathVariable(value = "sessionId") String sessionId,
-			@RequestBody ChatMessageDTO request) {
+			@RequestBody ChatMessageDTO request, ServerWebExchange exchange) {
 		try {
 			if (request == null) {
 				return ResponseEntity.badRequest().build();
 			}
+			chatSessionService.assertOwnedByCurrentTenant(sessionId);
 			ChatMessage message = ChatMessage.builder()
 				.sessionId(sessionId)
 				.role(request.getRole())
@@ -145,6 +150,9 @@ public class ChatController {
 			String message = isPinned ? "会话已置顶" : "会话已取消置顶";
 			return ResponseEntity.ok(ApiResponse.success(message));
 		}
+		catch (ResponseStatusException e) {
+			throw e;
+		}
 		catch (Exception e) {
 			log.error("Pin session error for session {}: {}", sessionId, e.getMessage(), e);
 			return ResponseEntity.internalServerError().body(ApiResponse.error("操作失败"));
@@ -165,6 +173,9 @@ public class ChatController {
 			chatSessionService.renameSession(sessionId, title.trim());
 			return ResponseEntity.ok(ApiResponse.success("会话已重命名"));
 		}
+		catch (ResponseStatusException e) {
+			throw e;
+		}
 		catch (Exception e) {
 			log.error("Rename session error for session {}: {}", sessionId, e.getMessage(), e);
 			return ResponseEntity.internalServerError().body(ApiResponse.error("重命名失败"));
@@ -179,6 +190,9 @@ public class ChatController {
 		try {
 			chatSessionService.deleteSession(sessionId);
 			return ResponseEntity.ok(ApiResponse.success("会话已删除"));
+		}
+		catch (ResponseStatusException e) {
+			throw e;
 		}
 		catch (Exception e) {
 			log.error("Delete session error for session {}: {}", sessionId, e.getMessage(), e);

@@ -64,4 +64,9 @@ public interface ChatSessionService {
 	 */
 	void deleteSession(String sessionId);
 
+	/**
+	 * In tenant mode, ensure the session belongs to the current user; otherwise throw 404.
+	 */
+	void assertOwnedByCurrentTenant(String sessionId);
+
 }

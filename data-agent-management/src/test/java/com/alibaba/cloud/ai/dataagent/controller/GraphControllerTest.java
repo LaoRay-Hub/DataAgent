@@ -18,6 +18,8 @@ package com.alibaba.cloud.ai.dataagent.controller;
 import com.alibaba.cloud.ai.dataagent.dto.GraphRequest;
 import com.alibaba.cloud.ai.dataagent.enums.GraphEventType;
 import com.alibaba.cloud.ai.dataagent.enums.TextType;
+import com.alibaba.cloud.ai.dataagent.service.agent.AgentService;
+import com.alibaba.cloud.ai.dataagent.service.chat.ChatSessionService;
 import com.alibaba.cloud.ai.dataagent.service.graph.GraphService;
 import com.alibaba.cloud.ai.dataagent.vo.GraphNodeResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +31,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
@@ -45,16 +50,25 @@ class GraphControllerTest {
 	private GraphService graphService;
 
 	@Mock
+	private AgentService agentService;
+
+	@Mock
+	private ChatSessionService chatSessionService;
+
+	@Mock
 	private ServerHttpResponse serverHttpResponse;
 
 	@Mock
 	private HttpHeaders httpHeaders;
 
+	@Mock
+	private ServerWebExchange exchange;
+
 	private GraphController graphController;
 
 	@BeforeEach
 	void setUp() {
-		graphController = new GraphController(graphService);
+		graphController = new GraphController(graphService, agentService, chatSessionService);
 	}
 
 	private void stubResponseHeaders() {
@@ -71,30 +85,55 @@ class GraphControllerTest {
 		}).when(graphService).graphStreamProcess(any(Sinks.Many.class), any(GraphRequest.class));
 
 		StepVerifier
-			.create(graphController.streamSearch("agent-1", "conversation-1", "thread-1", "show me sales data", false,
-					null, false, false, serverHttpResponse))
+			.create(graphController.streamSearch("1", "conversation-1", "thread-1", "show me sales data", false, null,
+					false, false, serverHttpResponse, exchange))
 			.verifyComplete();
 
 		ArgumentCaptor<GraphRequest> requestCaptor = ArgumentCaptor.forClass(GraphRequest.class);
 		verify(graphService).graphStreamProcess(any(Sinks.Many.class), requestCaptor.capture());
 
 		GraphRequest captured = requestCaptor.getValue();
-		assertEquals("agent-1", captured.getAgentId());
+		assertEquals("1", captured.getAgentId());
 		assertEquals("conversation-1", captured.getConversationId());
 		assertEquals("thread-1", captured.getThreadId());
 		assertEquals("show me sales data", captured.getQuery());
 		assertFalse(captured.isHumanFeedback());
+		verify(agentService).requireAccessible(1L);
+		verify(chatSessionService).assertOwnedByCurrentTenant("conversation-1");
 		verify(httpHeaders).add("Cache-Control", "no-cache");
 		verify(httpHeaders).add("Connection", "keep-alive");
 		verify(httpHeaders).add("Access-Control-Allow-Origin", "*");
 	}
 
 	@Test
+	void streamSearch_sessionOwnedByAnotherUser_isRejected() {
+		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)).when(chatSessionService)
+			.assertOwnedByCurrentTenant("someone-elses-session");
+
+		assertThrows(ResponseStatusException.class,
+				() -> graphController.streamSearch("1", "someone-elses-session", null, "show me sales data", false, null,
+						false, false, serverHttpResponse, exchange));
+
+		verifyNoInteractions(graphService);
+	}
+
+	@Test
+	void streamSearch_agentOutsideWorkspace_isRejected() {
+		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)).when(agentService).requireAccessible(1L);
+
+		assertThrows(ResponseStatusException.class,
+				() -> graphController.streamSearch("1", "conversation-1", null, "show me sales data", false, null, false,
+						false, serverHttpResponse, exchange));
+
+		verifyNoInteractions(graphService);
+	}
+
+	@Test
 	void streamSearch_humanFeedback_passesHumanFeedbackParams() {
 		stubResponseHeaders();
 
-		graphController.streamSearch("agent-1", "conversation-2", "thread-2", "approve this plan", true, "looks good",
-				false, false, serverHttpResponse);
+		graphController.streamSearch("1", "conversation-2", "thread-2", "approve this plan", true, "looks good", false,
+				false, serverHttpResponse, exchange);
 
 		ArgumentCaptor<GraphRequest> requestCaptor = ArgumentCaptor.forClass(GraphRequest.class);
 		verify(graphService).graphStreamProcess(any(Sinks.Many.class), requestCaptor.capture());
@@ -109,8 +148,8 @@ class GraphControllerTest {
 	void streamSearch_nl2sqlOnly_setsNl2sqlOnlyFlag() {
 		stubResponseHeaders();
 
-		graphController.streamSearch("agent-1", "conversation-3", null, "SELECT query", false, null, false, true,
-				serverHttpResponse);
+		graphController.streamSearch("1", "conversation-3", null, "SELECT query", false, null, false, true,
+				serverHttpResponse, exchange);
 
 		ArgumentCaptor<GraphRequest> requestCaptor = ArgumentCaptor.forClass(GraphRequest.class);
 		verify(graphService).graphStreamProcess(any(Sinks.Many.class), requestCaptor.capture());
@@ -127,7 +166,7 @@ class GraphControllerTest {
 			Sinks.Many<ServerSentEvent<GraphNodeResponse>> sink = invocation.getArgument(0);
 			sink.tryEmitNext(ServerSentEvent
 				.builder(GraphNodeResponse.builder()
-					.agentId("agent-1")
+					.agentId("1")
 					.threadId("run-1")
 					.eventType(GraphEventType.HUMAN_FEEDBACK_REQUIRED)
 					.textType(TextType.TEXT)
@@ -138,8 +177,8 @@ class GraphControllerTest {
 		}).when(graphService).graphStreamProcess(any(Sinks.Many.class), any(GraphRequest.class));
 
 		GraphNodeResponse response = graphController
-			.streamSearch("agent-1", "conversation-1", null, "review the plan", true, null, false, false,
-					serverHttpResponse)
+			.streamSearch("1", "conversation-1", null, "review the plan", true, null, false, false, serverHttpResponse,
+					exchange)
 			.map(ServerSentEvent::data)
 			.blockFirst(Duration.ofSeconds(1));
 
@@ -149,19 +188,43 @@ class GraphControllerTest {
 	}
 
 	@Test
-	void stopStream_withRunId_stopsExactGraphRun() {
-		graphController.stopStream("conversation-4", "run-4");
+	void streamSearch_withoutConversationId_skipsOwnershipCheck() {
+		stubResponseHeaders();
 
+		graphController.streamSearch("1", null, null, "show me sales data", false, null, false, false, serverHttpResponse,
+				exchange);
+
+		verify(agentService).requireAccessible(1L);
+		verify(chatSessionService, never()).assertOwnedByCurrentTenant(anyString());
+		verify(graphService).graphStreamProcess(any(Sinks.Many.class), any(GraphRequest.class));
+	}
+
+	@Test
+	void stopStream_withRunId_stopsExactGraphRun() {
+		graphController.stopStream("conversation-4", "run-4", exchange);
+
+		verify(chatSessionService).assertOwnedByCurrentTenant("conversation-4");
 		verify(graphService).stopStreamProcessing("run-4");
 		verify(graphService, never()).stopStreamProcessingByConversationId(anyString());
 	}
 
 	@Test
 	void stopStream_withoutRunId_stopsConversationRun() {
-		graphController.stopStream("conversation-5", null);
+		graphController.stopStream("conversation-5", null, exchange);
 
 		verify(graphService).stopStreamProcessingByConversationId("conversation-5");
 		verify(graphService, never()).stopStreamProcessing(anyString());
+	}
+
+	@Test
+	void stopStream_sessionOwnedByAnotherUser_isRejected() {
+		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)).when(chatSessionService)
+			.assertOwnedByCurrentTenant("someone-elses-session");
+
+		assertThrows(ResponseStatusException.class,
+				() -> graphController.stopStream("someone-elses-session", "run-9", exchange));
+
+		verifyNoInteractions(graphService);
 	}
 
 }

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -51,7 +52,7 @@ class AgentControllerTest {
 		Agent saved = Agent.builder().id(1L).name("Test Agent").description("A test agent").status("draft").build();
 		when(agentService.save(any(Agent.class))).thenReturn(saved);
 
-		Agent result = agentController.create(input);
+		Agent result = agentController.create(input, null);
 
 		assertNotNull(result);
 		assertEquals(1L, result.getId());
@@ -63,7 +64,7 @@ class AgentControllerTest {
 	@Test
 	void getAgent_existingId_returnsAgent() {
 		Agent agent = Agent.builder().id(1L).name("Test Agent").build();
-		when(agentService.findById(1L)).thenReturn(agent);
+		when(agentService.requireAccessible(1L)).thenReturn(agent);
 
 		Agent result = agentController.get(1L);
 
@@ -73,7 +74,8 @@ class AgentControllerTest {
 
 	@Test
 	void getAgent_nonExistingId_throwsNotFoundException() {
-		when(agentService.findById(999L)).thenReturn(null);
+		when(agentService.requireAccessible(999L))
+			.thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "agent with id: 999 not found"));
 
 		assertThrows(ResponseStatusException.class, () -> agentController.get(999L));
 	}
@@ -81,7 +83,7 @@ class AgentControllerTest {
 	@Test
 	void deleteAgent_existingId_callsDeleteOnService() {
 		Agent agent = Agent.builder().id(1L).name("Test Agent").build();
-		when(agentService.findById(1L)).thenReturn(agent);
+		when(agentService.requireAccessible(1L)).thenReturn(agent);
 
 		agentController.delete(1L);
 
@@ -91,7 +93,7 @@ class AgentControllerTest {
 	@Test
 	void publishAgent_validAgent_updatesStatusToPublished() {
 		Agent agent = Agent.builder().id(1L).name("Test Agent").status("draft").build();
-		when(agentService.findById(1L)).thenReturn(agent);
+		when(agentService.requireAccessible(1L)).thenReturn(agent);
 		when(agentService.save(any(Agent.class))).thenAnswer(inv -> inv.getArgument(0));
 
 		Agent result = agentController.publish(1L);
@@ -104,7 +106,7 @@ class AgentControllerTest {
 	void generateApiKey_validAgent_returnsKeyResponse() {
 		Agent agent = Agent.builder().id(1L).name("Test Agent").build();
 		Agent updated = Agent.builder().id(1L).apiKey("sk-abc123").apiKeyEnabled(1).build();
-		when(agentService.findById(1L)).thenReturn(agent);
+		when(agentService.requireAccessible(1L)).thenReturn(agent);
 		when(agentService.generateApiKey(1L)).thenReturn(updated);
 
 		ApiResponse<ApiKeyResponse> result = agentController.generateApiKey(1L);

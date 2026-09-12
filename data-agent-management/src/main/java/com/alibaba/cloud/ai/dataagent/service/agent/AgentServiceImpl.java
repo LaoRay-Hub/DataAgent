@@ -23,11 +23,14 @@ import com.alibaba.cloud.ai.dataagent.security.ApiKeyCredentialService;
 import com.alibaba.cloud.ai.dataagent.service.file.FileStorageService;
 import com.alibaba.cloud.ai.dataagent.service.knowledge.AgentKnowledgeResourceManager;
 import com.alibaba.cloud.ai.dataagent.service.vectorstore.AgentVectorStoreService;
+import com.alibaba.cloud.ai.dataagent.tenant.DpTenantContext;
 import com.alibaba.cloud.ai.dataagent.util.ApiKeyUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -61,6 +64,16 @@ public class AgentServiceImpl implements AgentService {
 	@Override
 	public Agent findById(Long id) {
 		return agentMapper.findById(id);
+	}
+
+	@Override
+	public Agent requireAccessible(Long id) {
+		Agent agent = agentMapper.findById(id);
+		Long workspaceId = DpTenantContext.workspaceId();
+		if (agent == null || (workspaceId != null && !workspaceId.equals(agent.getWorkspaceId()))) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "agent with id: %d not found".formatted(id));
+		}
+		return agent;
 	}
 
 	@Override

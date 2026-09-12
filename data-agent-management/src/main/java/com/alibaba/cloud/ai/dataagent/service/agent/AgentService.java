@@ -25,6 +25,11 @@ public interface AgentService {
 
 	Agent findById(Long id);
 
+	/**
+	 * 取当前租户可访问的智能体，不存在或不属于当前工作空间时抛 404
+	 */
+	Agent requireAccessible(Long id);
+
 	List<Agent> findByStatus(String status);
 
 	List<Agent> search(String keyword);

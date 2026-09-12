@@ -85,7 +85,9 @@ public class SessionTitleService {
 			}
 
 			chatSessionService.renameSession(sessionId, title);
-			sessionEventPublisher.publishTitleUpdated(session.getAgentId(), sessionId, title);
+			// 本方法跑在 dbOperationExecutor 线程上，读不到请求线程的租户上下文，
+			// 因此用会话自身的归属用户来定向推送。
+			sessionEventPublisher.publishTitleUpdated(session.getAgentId(), session.getUserId(), sessionId, title);
 			log.info("Generated session title '{}' for session {}", title, sessionId);
 		}
 		catch (Exception ex) {

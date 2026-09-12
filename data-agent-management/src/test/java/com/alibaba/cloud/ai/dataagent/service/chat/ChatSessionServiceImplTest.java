@@ -17,12 +17,16 @@ package com.alibaba.cloud.ai.dataagent.service.chat;
 
 import com.alibaba.cloud.ai.dataagent.entity.ChatSession;
 import com.alibaba.cloud.ai.dataagent.mapper.ChatSessionMapper;
+import com.alibaba.cloud.ai.dataagent.tenant.DpTenantContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,18 +56,19 @@ class ChatSessionServiceImplTest {
 		Integer agentId = 1;
 		List<ChatSession> expected = List.of(ChatSession.builder().id("s1").agentId(agentId).build(),
 				ChatSession.builder().id("s2").agentId(agentId).build());
-		when(chatSessionMapper.selectByAgentId(agentId)).thenReturn(expected);
+		// 非租户模式下 userId 为 null，mapper 不追加 user_id 过滤
+		when(chatSessionMapper.selectByAgentId(agentId, null)).thenReturn(expected);
 
 		List<ChatSession> result = service.findByAgentId(agentId);
 
 		assertEquals(2, result.size());
 		assertEquals("s1", result.get(0).getId());
-		verify(chatSessionMapper).selectByAgentId(agentId);
+		verify(chatSessionMapper).selectByAgentId(agentId, null);
 	}
 
 	@Test
 	void findByAgentId_returnsEmptyList() {
-		when(chatSessionMapper.selectByAgentId(999)).thenReturn(List.of());
+		when(chatSessionMapper.selectByAgentId(999, null)).thenReturn(List.of());
 
 		List<ChatSession> result = service.findByAgentId(999);
 
@@ -117,14 +122,14 @@ class ChatSessionServiceImplTest {
 
 	@Test
 	void clearSessionsByAgentId_callsSoftDelete() {
-		when(chatSessionMapper.selectByAgentId(1))
+		when(chatSessionMapper.selectByAgentId(1, null))
 			.thenReturn(List.of(ChatSession.builder().id("session-1").build(),
 					ChatSession.builder().id("session-2").build()));
-		when(chatSessionMapper.softDeleteByAgentId(eq(1), any(LocalDateTime.class))).thenReturn(3);
+		when(chatSessionMapper.softDeleteByAgentId(eq(1), isNull(), any(LocalDateTime.class))).thenReturn(3);
 
 		service.clearSessionsByAgentId(1);
 
-		verify(chatSessionMapper).softDeleteByAgentId(eq(1), any(LocalDateTime.class));
+		verify(chatSessionMapper).softDeleteByAgentId(eq(1), isNull(), any(LocalDateTime.class));
 		verify(chatMemory).clear("session-1");
 		verify(chatMemory).clear("session-2");
 	}
@@ -156,6 +161,32 @@ class ChatSessionServiceImplTest {
 
 		verify(chatSessionMapper).softDeleteById(eq("session-1"), any(LocalDateTime.class));
 		verify(chatMemory).clear("session-1");
+	}
+
+	@Test
+	void findByAgentId_inTenantMode_filtersByCurrentUser() {
+		DpTenantContext.set(7L, 3L);
+
+		service.findByAgentId(1);
+
+		verify(chatSessionMapper).selectByAgentId(1, 7L);
+	}
+
+	@Test
+	void assertOwnedByCurrentTenant_throwsNotFoundWhenOwnedByAnotherUser() {
+		DpTenantContext.set(7L, 3L);
+		when(chatSessionMapper.selectBySessionId("session-1"))
+			.thenReturn(ChatSession.builder().id("session-1").userId(8L).build());
+
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> service.assertOwnedByCurrentTenant("session-1"));
+
+		assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+	}
+
+	@AfterEach
+	void clearTenantContext() {
+		DpTenantContext.clear();
 	}
 
 }

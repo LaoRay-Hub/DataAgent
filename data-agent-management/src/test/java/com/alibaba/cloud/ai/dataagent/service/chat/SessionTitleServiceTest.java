@@ -98,7 +98,12 @@ class SessionTitleServiceTest {
 
 	@Test
 	void scheduleTitleGeneration_generatesAndPersistsTitle() throws Exception {
-		ChatSession session = ChatSession.builder().id("session-1").agentId(1).title("\u65b0\u4f1a\u8bdd").build();
+		ChatSession session = ChatSession.builder()
+			.id("session-1")
+			.agentId(1)
+			.title("\u65b0\u4f1a\u8bdd")
+			.userId(7L)
+			.build();
 		when(chatSessionService.findBySessionId("session-1")).thenReturn(session);
 
 		Flux<ChatResponse> chatResponseFlux = Flux.empty();
@@ -110,7 +115,7 @@ class SessionTitleServiceTest {
 		assertTrue(executorService.awaitTermination(5, TimeUnit.SECONDS), "the title task must actually finish");
 
 		verify(chatSessionService).renameSession(eq("session-1"), eq("Generated Title"));
-		verify(sessionEventPublisher).publishTitleUpdated(eq(1), eq("session-1"), eq("Generated Title"));
+		verify(sessionEventPublisher).publishTitleUpdated(eq(1), eq(7L), eq("session-1"), eq("Generated Title"));
 	}
 
 	@Test
@@ -144,7 +149,7 @@ class SessionTitleServiceTest {
 		verify(chatSessionService, times(1)).findBySessionId("session-1");
 		verify(llmService, times(1)).call(anyString(), anyString());
 		verify(chatSessionService, times(1)).renameSession("session-1", "Title");
-		verify(sessionEventPublisher, times(1)).publishTitleUpdated(1, "session-1", "Title");
+		verify(sessionEventPublisher, times(1)).publishTitleUpdated(1, null, "session-1", "Title");
 	}
 
 }

@@ -37,7 +37,7 @@ class SessionEventPublisherTest {
 
 	@Test
 	void register_emitsHeartbeatAfterSubscription() {
-		StepVerifier.withVirtualTime(() -> publisher.register(1).take(1))
+		StepVerifier.withVirtualTime(() -> publisher.register(1, null).take(1))
 			.thenAwait(Duration.ofSeconds(2))
 			.assertNext(sse -> {
 				assertEquals("heartbeat", sse.comment());
@@ -49,10 +49,10 @@ class SessionEventPublisherTest {
 	@Test
 	void publishTitleUpdated_emitsEventToSubscriber() {
 		Integer agentId = 1;
-		Flux<ServerSentEvent<SessionUpdateEvent>> flux = publisher.register(agentId);
+		Flux<ServerSentEvent<SessionUpdateEvent>> flux = publisher.register(agentId, null);
 
 		StepVerifier.create(flux.filter(sse -> sse.data() != null).take(1))
-			.then(() -> publisher.publishTitleUpdated(agentId, "session-1", "New Title"))
+			.then(() -> publisher.publishTitleUpdated(agentId, null, "session-1", "New Title"))
 			.assertNext(sse -> {
 				SessionUpdateEvent event = sse.data();
 				assertNotNull(event);
@@ -66,23 +66,35 @@ class SessionEventPublisherTest {
 
 	@Test
 	void publishTitleUpdated_withNullAgentId_doesNotThrow() {
-		assertDoesNotThrow(() -> publisher.publishTitleUpdated(null, "session-1", "title"));
+		assertDoesNotThrow(() -> publisher.publishTitleUpdated(null, null, "session-1", "title"));
 
-		Flux<ServerSentEvent<SessionUpdateEvent>> flux = publisher.register(1);
+		Flux<ServerSentEvent<SessionUpdateEvent>> flux = publisher.register(1, null);
 		StepVerifier.create(flux.filter(sse -> sse.data() != null).take(1))
-			.then(() -> publisher.publishTitleUpdated(1, "session-after-null", "Current Title"))
+			.then(() -> publisher.publishTitleUpdated(1, null, "session-after-null", "Current Title"))
 			.assertNext(sse -> assertEquals("session-after-null", sse.data().getSessionId()))
 			.verifyComplete();
 	}
 
 	@Test
 	void publishTitleUpdated_withNoSubscribers_doesNotBufferStaleEvent() {
-		assertDoesNotThrow(() -> publisher.publishTitleUpdated(999, "session-1", "title"));
+		assertDoesNotThrow(() -> publisher.publishTitleUpdated(999, null, "session-1", "title"));
 
-		Flux<ServerSentEvent<SessionUpdateEvent>> flux = publisher.register(999);
+		Flux<ServerSentEvent<SessionUpdateEvent>> flux = publisher.register(999, null);
 		StepVerifier.create(flux.filter(sse -> sse.data() != null).take(1))
-			.then(() -> publisher.publishTitleUpdated(999, "session-current", "Current Title"))
+			.then(() -> publisher.publishTitleUpdated(999, null, "session-current", "Current Title"))
 			.assertNext(sse -> assertEquals("session-current", sse.data().getSessionId()))
+			.verifyComplete();
+	}
+
+	@Test
+	void publishTitleUpdated_doesNotLeakToOtherUsersOfSameAgent() {
+		Integer agentId = 1;
+		Flux<ServerSentEvent<SessionUpdateEvent>> userTwo = publisher.register(agentId, 2L);
+
+		StepVerifier.create(userTwo.filter(sse -> sse.data() != null).take(1))
+			.then(() -> publisher.publishTitleUpdated(agentId, 1L, "session-of-user-1", "User One Title"))
+			.then(() -> publisher.publishTitleUpdated(agentId, 2L, "session-of-user-2", "User Two Title"))
+			.assertNext(sse -> assertEquals("session-of-user-2", sse.data().getSessionId()))
 			.verifyComplete();
 	}
 

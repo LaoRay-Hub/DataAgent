@@ -2,11 +2,13 @@
 -- 幂等初始化示例数据；已有记录仅在内容变化时更新
 
 -- 智能体示例数据（必须先于带 agent_id 外键的知识和语义模型写入）
-INSERT INTO `agent` (`id`, `name`, `description`, `avatar`, `status`, `api_key`, `api_key_enabled`, `prompt`, `category`, `admin_id`, `tags`, `create_time`, `update_time`) VALUES
-(1, '电商订单分析智能体', '基于用户、商品、订单和分类数据进行查询与经营分析', NULL, 'draft', NULL, 0, '你是一个电商运营数据分析助手。请仅基于已连接数据库中的用户、商品、订单、订单明细和分类数据回答问题，生成与真实字段一致的SQL。', '电商分析', 2100246635, '订单分析,商品分析,用户分析', NOW(), NOW()),
-(2, '销售数据分析智能体', '专注于销售数据分析和业务指标计算的智能体', NULL, 'draft', NULL, 0, '你是一个销售数据分析专家，能够帮助用户分析销售趋势、客户行为和业务指标。', '业务分析', 2100246635, '销售分析,业务指标,客户分析', NOW(), NOW()),
-(3, '财务报表智能体', '专门处理财务数据和报表分析的智能体', NULL, 'draft', NULL, 0, '你是一个财务分析专家，专门处理财务数据查询和报表生成。', '财务分析', 2100246635, '财务数据,报表分析,会计', NOW(), NOW()),
-(4, '库存管理智能体', '专注于库存数据管理和供应链分析的智能体', NULL, 'draft', NULL, 0, '你是一个库存管理专家，能够帮助用户查询库存状态、分析供应链数据。', '供应链', 2100246635, '库存管理,供应链,物流', NOW(), NOW())
+-- workspace_id=1 是 data-pilot 的默认工作空间；不填则开启租户隔离后示例智能体在嵌入态里全部不可见。
+-- 该列故意不参与 ON DUPLICATE KEY UPDATE（与 admin_id、status 一致），改派工作空间后不会被重启拉回。
+INSERT INTO `agent` (`id`, `name`, `description`, `avatar`, `status`, `api_key`, `api_key_enabled`, `prompt`, `category`, `admin_id`, `workspace_id`, `tags`, `create_time`, `update_time`) VALUES
+(1, '电商订单分析智能体', '基于用户、商品、订单和分类数据进行查询与经营分析', NULL, 'draft', NULL, 0, '你是一个电商运营数据分析助手。请仅基于已连接数据库中的用户、商品、订单、订单明细和分类数据回答问题，生成与真实字段一致的SQL。', '电商分析', 2100246635, 1, '订单分析,商品分析,用户分析', NOW(), NOW()),
+(2, '销售数据分析智能体', '专注于销售数据分析和业务指标计算的智能体', NULL, 'draft', NULL, 0, '你是一个销售数据分析专家，能够帮助用户分析销售趋势、客户行为和业务指标。', '业务分析', 2100246635, 1, '销售分析,业务指标,客户分析', NOW(), NOW()),
+(3, '财务报表智能体', '专门处理财务数据和报表分析的智能体', NULL, 'draft', NULL, 0, '你是一个财务分析专家，专门处理财务数据查询和报表生成。', '财务分析', 2100246635, 1, '财务数据,报表分析,会计', NOW(), NOW()),
+(4, '库存管理智能体', '专注于库存数据管理和供应链分析的智能体', NULL, 'draft', NULL, 0, '你是一个库存管理专家，能够帮助用户查询库存状态、分析供应链数据。', '供应链', 2100246635, 1, '库存管理,供应链,物流', NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), avatar=VALUES(avatar), prompt=VALUES(prompt), category=VALUES(category), tags=VALUES(tags), update_time=NOW();
 
 -- 业务知识示例数据

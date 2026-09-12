@@ -69,7 +69,7 @@ class ChatControllerTest {
 			.build();
 		when(chatSessionService.createSession(1, "New Session", null)).thenReturn(session);
 
-		ResponseEntity<ChatSession> result = chatController.createSession(1, Map.of("title", "New Session"));
+		ResponseEntity<ChatSession> result = chatController.createSession(1, Map.of("title", "New Session"), null);
 
 		assertEquals(200, result.getStatusCode().value());
 		assertNotNull(result.getBody());
@@ -81,7 +81,7 @@ class ChatControllerTest {
 		ChatSession session = ChatSession.builder().id("uuid-2").agentId(1).build();
 		when(chatSessionService.createSession(1, null, null)).thenReturn(session);
 
-		ResponseEntity<ChatSession> result = chatController.createSession(1, null);
+		ResponseEntity<ChatSession> result = chatController.createSession(1, null, null);
 
 		assertEquals(200, result.getStatusCode().value());
 		assertEquals("uuid-2", result.getBody().getId());
@@ -268,7 +268,7 @@ class ChatControllerTest {
 		ChatMessage saved = ChatMessage.builder().id(1L).sessionId("uuid-1").role("user").content("Hello").build();
 		when(chatMessageService.saveMessage(any())).thenReturn(saved);
 
-		ResponseEntity<ChatMessage> result = chatController.saveMessage("uuid-1", dto);
+		ResponseEntity<ChatMessage> result = chatController.saveMessage("uuid-1", dto, null);
 
 		assertEquals(200, result.getStatusCode().value());
 		assertEquals("Hello", result.getBody().getContent());
@@ -290,7 +290,7 @@ class ChatControllerTest {
 			.build();
 		when(chatMessageService.saveMessage(any())).thenReturn(saved);
 
-		chatController.saveMessage("uuid-1", dto);
+		chatController.saveMessage("uuid-1", dto, null);
 
 		verify(sessionTitleService).scheduleTitleGeneration("uuid-1", "What is AI?");
 	}
@@ -302,7 +302,7 @@ class ChatControllerTest {
 		dto.setContent("test");
 		when(chatMessageService.saveMessage(any())).thenThrow(new RuntimeException("save error"));
 
-		ResponseEntity<ChatMessage> result = chatController.saveMessage("uuid-1", dto);
+		ResponseEntity<ChatMessage> result = chatController.saveMessage("uuid-1", dto, null);
 
 		assertEquals(500, result.getStatusCode().value());
 	}

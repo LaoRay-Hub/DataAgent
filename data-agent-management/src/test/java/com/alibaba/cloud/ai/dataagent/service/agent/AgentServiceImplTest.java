@@ -23,12 +23,16 @@ import com.alibaba.cloud.ai.dataagent.security.ApiKeyCredentialService;
 import com.alibaba.cloud.ai.dataagent.service.file.FileStorageService;
 import com.alibaba.cloud.ai.dataagent.service.knowledge.AgentKnowledgeResourceManager;
 import com.alibaba.cloud.ai.dataagent.service.vectorstore.AgentVectorStoreService;
+import com.alibaba.cloud.ai.dataagent.tenant.DpTenantContext;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -217,6 +221,37 @@ class AgentServiceImplTest {
 		when(apiKeyCredentialService.mask("{bcrypt}hash::1234")).thenReturn("****1234");
 
 		assertEquals("****1234", agentService.getApiKeyMasked(1L));
+	}
+
+	@Test
+	void requireAccessible_withoutTenantContext_returnsAgent() {
+		when(agentMapper.findById(1L)).thenReturn(Agent.builder().id(1L).build());
+
+		assertNotNull(agentService.requireAccessible(1L));
+	}
+
+	@Test
+	void requireAccessible_sameWorkspace_returnsAgent() {
+		DpTenantContext.set(7L, 10L);
+		when(agentMapper.findById(1L)).thenReturn(Agent.builder().id(1L).workspaceId(10L).build());
+
+		assertEquals(Long.valueOf(10L), agentService.requireAccessible(1L).getWorkspaceId());
+	}
+
+	@Test
+	void requireAccessible_otherWorkspace_throwsNotFound() {
+		DpTenantContext.set(7L, 10L);
+		when(agentMapper.findById(1L)).thenReturn(Agent.builder().id(1L).workspaceId(20L).build());
+
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> agentService.requireAccessible(1L));
+
+		assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+	}
+
+	@AfterEach
+	void clearTenantContext() {
+		DpTenantContext.clear();
 	}
 
 }

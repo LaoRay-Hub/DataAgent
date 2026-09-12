@@ -17,6 +17,8 @@ package com.alibaba.cloud.ai.dataagent.controller;
 
 import com.alibaba.cloud.ai.dataagent.dto.GraphRequest;
 import com.alibaba.cloud.ai.dataagent.enums.GraphEventType;
+import com.alibaba.cloud.ai.dataagent.service.agent.AgentService;
+import com.alibaba.cloud.ai.dataagent.service.chat.ChatSessionService;
 import com.alibaba.cloud.ai.dataagent.service.graph.GraphService;
 import com.alibaba.cloud.ai.dataagent.vo.GraphNodeResponse;
 import lombok.AllArgsConstructor;
@@ -27,6 +29,7 @@ import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -46,6 +49,10 @@ public class GraphController {
 
 	private final GraphService graphService;
 
+	private final AgentService agentService;
+
+	private final ChatSessionService chatSessionService;
+
 	@GetMapping(value = "/stream/search", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public Flux<ServerSentEvent<GraphNodeResponse>> streamSearch(@RequestParam("agentId") String agentId,
 			@RequestParam(value = "conversationId", required = false) String conversationId,
@@ -53,7 +60,15 @@ public class GraphController {
 			@RequestParam(value = "humanFeedback", required = false) boolean humanFeedback,
 			@RequestParam(value = "humanFeedbackContent", required = false) String humanFeedbackContent,
 			@RequestParam(value = "rejectedPlan", required = false) boolean rejectedPlan,
-			@RequestParam(value = "nl2sqlOnly", required = false) boolean nl2sqlOnly, ServerHttpResponse response) {
+			@RequestParam(value = "nl2sqlOnly", required = false) boolean nl2sqlOnly, ServerHttpResponse response,
+			ServerWebExchange exchange) {
+		// conversationId 即 chat_session.id，多轮上下文与 ChatMemory 都以它为键，
+		// 不校验归属就能读写别人的对话。exchange 参数由 DpTenantAspect 用来在本线程重新绑定租户上下文。
+		agentService.requireAccessible(Long.parseLong(agentId));
+		if (StringUtils.hasText(conversationId)) {
+			chatSessionService.assertOwnedByCurrentTenant(conversationId);
+		}
+
 		// Set SSE-related HTTP headers
 		response.getHeaders().add("Cache-Control", "no-cache");
 		response.getHeaders().add("Connection", "keep-alive");
@@ -104,8 +119,10 @@ public class GraphController {
 	}
 
 	@PostMapping("/stream/stop")
+	// exchange 参数由 DpTenantAspect 用来在本线程重新绑定租户上下文，方法体内不直接使用
 	public ResponseEntity<Void> stopStream(@RequestParam("conversationId") String conversationId,
-			@RequestParam(value = "threadId", required = false) String threadId) {
+			@RequestParam(value = "threadId", required = false) String threadId, ServerWebExchange exchange) {
+		chatSessionService.assertOwnedByCurrentTenant(conversationId);
 		if (StringUtils.hasText(threadId)) {
 			graphService.stopStreamProcessing(threadId);
 		}

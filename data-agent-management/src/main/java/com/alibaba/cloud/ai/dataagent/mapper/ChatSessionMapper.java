@@ -25,14 +25,19 @@ import java.util.List;
 public interface ChatSessionMapper {
 
 	/**
-	 * Query session list by agent ID
+	 * Query session list by agent ID, optionally scoped to a single user
 	 */
 	@Select("""
+			<script>
 			SELECT * FROM chat_session
 			WHERE agent_id = #{agentId} AND status != 'deleted'
+			<if test="userId != null">
+				AND user_id = #{userId}
+			</if>
 			ORDER BY is_pinned DESC, update_time DESC
+			</script>
 			""")
-	List<ChatSession> selectByAgentId(@Param("agentId") Integer agentId);
+	List<ChatSession> selectByAgentId(@Param("agentId") Integer agentId, @Param("userId") Long userId);
 
 	/**
 	 * Query session details by session ID
@@ -62,14 +67,20 @@ public interface ChatSessionMapper {
 	int updateById(ChatSession session);
 
 	/**
-	 * Soft delete all sessions for an agent
+	 * Soft delete all sessions for an agent, optionally scoped to a single user
 	 */
 	@Update("""
+			<script>
 			UPDATE chat_session
 			SET status = 'deleted', update_time = #{updateTime}
 			WHERE agent_id = #{agentId}
+			<if test="userId != null">
+				AND user_id = #{userId}
+			</if>
+			</script>
 			""")
-	int softDeleteByAgentId(@Param("agentId") Integer agentId, @Param("updateTime") LocalDateTime updateTime);
+	int softDeleteByAgentId(@Param("agentId") Integer agentId, @Param("userId") Long userId,
+			@Param("updateTime") LocalDateTime updateTime);
 
 	/**
 	 * Update session time

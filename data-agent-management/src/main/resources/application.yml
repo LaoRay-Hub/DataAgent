@@ -15,7 +15,7 @@ spring:
   datasource:
     url: ${DATA_AGENT_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/saa_data_agent?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&allowMultiQueries=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai}
     username: ${DATA_AGENT_DATASOURCE_USERNAME:root}
-    password: ${DATA_AGENT_DATASOURCE_PASSWORD:root}
+    password: ${DATA_AGENT_DATASOURCE_PASSWORD:didi1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
   sql:
     init:
@@ -92,3 +92,8 @@ logging:
     com.alibaba.cloud.ai.dataagent.workflow.node: info
     com.alibaba.cloud.ai.mapper: info
     org.springframework.jdbc: info
+
+# data-pilot 租户隔离开关：置于反向代理后并注入 X-Dp-User-Id / X-Dp-Workspace-Id 时置 true
+dataagent:
+  tenant:
+    enabled: ${DATAAGENT_TENANT_ENABLED:false}

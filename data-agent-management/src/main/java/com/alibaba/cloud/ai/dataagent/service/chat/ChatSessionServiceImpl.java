@@ -17,10 +17,13 @@ package com.alibaba.cloud.ai.dataagent.service.chat;
 
 import com.alibaba.cloud.ai.dataagent.entity.ChatSession;
 import com.alibaba.cloud.ai.dataagent.mapper.ChatSessionMapper;
+import com.alibaba.cloud.ai.dataagent.tenant.DpTenantContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,7 +43,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 	 */
 	@Override
 	public List<ChatSession> findByAgentId(Integer agentId) {
-		return chatSessionMapper.selectByAgentId(agentId);
+		return chatSessionMapper.selectByAgentId(agentId, DpTenantContext.userId());
 	}
 
 	@Override
@@ -53,6 +56,10 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 	 */
 	@Override
 	public ChatSession createSession(Integer agentId, String title, Long userId) {
+		Long tenantUserId = DpTenantContext.userId();
+		if (tenantUserId != null) {
+			userId = tenantUserId;
+		}
 		String sessionId = UUID.randomUUID().toString();
 
 		ChatSession session = new ChatSession(sessionId, agentId, title != null ? title : "新会话", "active", userId);
@@ -67,9 +74,10 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 	 */
 	@Override
 	public void clearSessionsByAgentId(Integer agentId) {
-		List<ChatSession> sessions = chatSessionMapper.selectByAgentId(agentId);
+		Long tenantUserId = DpTenantContext.userId();
+		List<ChatSession> sessions = chatSessionMapper.selectByAgentId(agentId, tenantUserId);
 		LocalDateTime now = LocalDateTime.now();
-		int updated = chatSessionMapper.softDeleteByAgentId(agentId, now);
+		int updated = chatSessionMapper.softDeleteByAgentId(agentId, tenantUserId, now);
 		sessions.forEach(session -> chatMemory.clear(session.getId()));
 		log.info("Cleared {} sessions for agent: {}", updated, agentId);
 	}
@@ -79,6 +87,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 	 */
 	@Override
 	public void updateSessionTime(String sessionId) {
+		assertOwnedByCurrentTenant(sessionId);
 		LocalDateTime now = LocalDateTime.now();
 		chatSessionMapper.updateSessionTime(sessionId, now);
 	}
@@ -88,6 +97,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 	 */
 	@Override
 	public void pinSession(String sessionId, boolean isPinned) {
+		assertOwnedByCurrentTenant(sessionId);
 		LocalDateTime now = LocalDateTime.now();
 		chatSessionMapper.updatePinStatus(sessionId, isPinned, now);
 		log.info("Updated pin status for session: {} to: {}", sessionId, isPinned);
@@ -98,6 +108,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 	 */
 	@Override
 	public void renameSession(String sessionId, String newTitle) {
+		assertOwnedByCurrentTenant(sessionId);
 		LocalDateTime now = LocalDateTime.now();
 		chatSessionMapper.updateTitle(sessionId, newTitle, now);
 		log.info("Renamed session: {} to: {}", sessionId, newTitle);
@@ -108,10 +119,26 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 	 */
 	@Override
 	public void deleteSession(String sessionId) {
+		assertOwnedByCurrentTenant(sessionId);
 		LocalDateTime now = LocalDateTime.now();
 		chatSessionMapper.softDeleteById(sessionId, now);
 		chatMemory.clear(sessionId);
 		log.info("Deleted session: {}", sessionId);
+	}
+
+	/**
+	 * In tenant mode, ensure the session belongs to the current user; otherwise 404.
+	 */
+	@Override
+	public void assertOwnedByCurrentTenant(String sessionId) {
+		Long tenantUserId = DpTenantContext.userId();
+		if (tenantUserId == null) {
+			return;
+		}
+		ChatSession session = chatSessionMapper.selectBySessionId(sessionId);
+		if (session == null || !tenantUserId.equals(session.getUserId())) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "session not found: " + sessionId);
+		}
 	}
 
 }

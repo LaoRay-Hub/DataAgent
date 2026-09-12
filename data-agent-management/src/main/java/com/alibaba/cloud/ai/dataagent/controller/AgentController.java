@@ -17,13 +17,13 @@ package com.alibaba.cloud.ai.dataagent.controller;
 
 import com.alibaba.cloud.ai.dataagent.entity.Agent;
 import com.alibaba.cloud.ai.dataagent.service.agent.AgentService;
+import com.alibaba.cloud.ai.dataagent.tenant.DpTenantContext;
 import com.alibaba.cloud.ai.dataagent.vo.ApiKeyResponse;
 import com.alibaba.cloud.ai.dataagent.vo.ApiResponse;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebExchange;
 
 /** Agent Management Controller */
 @Slf4j
@@ -60,7 +60,15 @@ public class AgentController {
 		else {
 			result = agentService.findAll();
 		}
-		return result;
+		return scopeToWorkspace(result);
+	}
+
+	private List<Agent> scopeToWorkspace(List<Agent> agents) {
+		Long workspaceId = DpTenantContext.workspaceId();
+		if (workspaceId == null) {
+			return agents;
+		}
+		return agents.stream().filter(a -> workspaceId.equals(a.getWorkspaceId())).toList();
 	}
 
 	/** Get agent details by ID */
@@ -71,17 +79,22 @@ public class AgentController {
 
 	/** Create agent */
 	@PostMapping
-	public Agent create(@RequestBody Agent agent) {
+	// exchange 参数由 DpTenantAspect 用来在本线程重新绑定租户上下文，方法体内不直接使用
+	public Agent create(@RequestBody Agent agent, ServerWebExchange exchange) {
 		// Set default status
 		if (StringUtils.isBlank(agent.getStatus())) {
 			agent.setStatus("draft");
+		}
+		Long workspaceId = DpTenantContext.workspaceId();
+		if (workspaceId != null) {
+			agent.setWorkspaceId(workspaceId);
 		}
 		return agentService.save(agent);
 	}
 
 	/** Update agent */
 	@PutMapping("/{id}")
-	public Agent update(@PathVariable Long id, @RequestBody Agent agent) {
+	public Agent update(@PathVariable Long id, @RequestBody Agent agent, ServerWebExchange exchange) {
 		checkAgentExists(id);
 		agent.setId(id);
 		return agentService.save(agent);
@@ -152,11 +165,7 @@ public class AgentController {
 	}
 
 	private Agent checkAgentExists(Long id) {
-		Agent agent = agentService.findById(id);
-		if (agent == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "agent with id: %d not found".formatted(id));
-		}
-		return agent;
+		return agentService.requireAccessible(id);
 	}
 
 	private ApiResponse<ApiKeyResponse> buildApiKeyResponse(String apiKey, Integer apiKeyEnabled, String message) {
