@@ -1,0 +1,17 @@
+# 构建上下文里最贵的是宿主机装好的前端依赖：既有几百 MB，又是 macOS/arm64 的原生二进制
+# （esbuild、@parcel/watcher、unrs-resolver），一旦 COPY 进 Alpine 镜像会直接覆盖容器内
+# pnpm 装好的那份，导致构建或运行期崩溃。前端镜像的依赖必须在容器内重新安装。
+**/node_modules
+
+# Nuxt 的中间产物与构建结果同理，容器内会重新生成
+data-agent-frontend-nuxt/.nuxt
+data-agent-frontend-nuxt/.output
+data-agent-frontend-nuxt/dist
+
+# Maven 产物在镜像内由 mvn install 重新生成
+**/target
+
+# 本地环境与编辑器状态
+**/.DS_Store
+.idea
+.vscode
