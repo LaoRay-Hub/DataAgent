@@ -12,7 +12,11 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-FROM eclipse-temurin:17-jdk-jammy as build
+# 基础镜像走 daocloud 加速（与同目录 Dockerfile-frontend 的 NODE_IMAGE、data-pilot 各 Dockerfile 约定一致）；
+# 能直连 Docker Hub 的环境用 --build-arg TEMURIN_IMAGE=eclipse-temurin:17-jdk-jammy 覆盖。
+ARG TEMURIN_IMAGE=docker.m.daocloud.io/library/eclipse-temurin:17-jdk-jammy
+
+FROM ${TEMURIN_IMAGE} as build
 
 WORKDIR /app
 
@@ -50,7 +54,7 @@ WORKDIR /app/DataAgent
 RUN mvn install -DskipTests
 #    mvn install -DskipTests -s ../aliyun-settings.xml
 
-FROM eclipse-temurin:17-jdk-jammy
+FROM ${TEMURIN_IMAGE}
 
 WORKDIR /app
 

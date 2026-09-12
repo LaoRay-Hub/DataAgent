@@ -18,7 +18,9 @@
 services:
   # MySQL数据库
   mysql:
-    image: mysql:8.0
+    # 默认走 daocloud 加速：目标部署环境直连 Docker Hub 被墙，裸 mysql:8.0 拉不下来。
+    # 能直连的环境用 DATAAGENT_MYSQL_IMAGE=mysql:8.0 覆盖。
+    image: ${DATAAGENT_MYSQL_IMAGE:-docker.m.daocloud.io/library/mysql:8.0}
     container_name: data-agent-mysql-inner
     command:
       - --character-set-server=utf8mb4
@@ -49,7 +51,6 @@ services:
       - DATA_AGENT_DATASOURCE_USERNAME=${DATAAGENT_DB_USERNAME:-root}
       - DATA_AGENT_DATASOURCE_PASSWORD=${DATAAGENT_DB_PASSWORD:-root}
       - DATA_AGENT_DATASOURCE_SQL_INIT=${DATAAGENT_SQL_INIT:-always}
-      - AI_DASHSCOPE_API_KEY=${AI_DASHSCOPE_API_KEY}
       # 嵌入 data-pilot 时必须为 true。这个开关是 fail-open 的：配错了不报错，
       # 只是 X-Dp-User-Id / X-Dp-Workspace-Id 被忽略，所有用户共享同一份智能体和会话。
       - DATAAGENT_TENANT_ENABLED=${DATAAGENT_TENANT_ENABLED:-true}
@@ -59,10 +60,6 @@ services:
       - "8065"
     depends_on:
       mysql:
-        condition: service_healthy
-      mysql-data:
-        condition: service_healthy
-      postgres-data:
         condition: service_healthy
     networks:
       app-network:
@@ -84,58 +81,33 @@ services:
         # 直连 backend:8065 会丢掉身份头。
         DATAAGENT_API_UPSTREAM: ${DATAAGENT_API_UPSTREAM:-http://data-pilot-web:8080/dp-web/dataagent/api}
         DATAAGENT_NL2SQL_UPSTREAM: ${DATAAGENT_NL2SQL_UPSTREAM:-http://data-pilot-web:8080/dp-web/dataagent/nl2sql}
+        # 与 data-pilot 前端 nginx 里的 location 前缀必须一致，同样是构建期烘焙。
+        DATAAGENT_BASE_URL: ${DATAAGENT_BASE_URL:-/dataagent-ui/}
       tags:
         - saa-data-agent-frontend:1.0.0-SNAPSHOT
     container_name: data-agent-frontend
-    ports:
-      - "${DATAAGENT_FRONTEND_PORT:-3000}:3000"  # 只暴露前端端口
+    # 故意不映射 3000。浏览器经 data-pilot 前端的 nginx 以 /dataagent-ui 前缀同源访问，
+    # 宿主机不需要（也不应该）再开一个端口：多开一个入口就等于多一条绕过登录态的路。
+    expose:
+      - "3000"
     environment:
-      # 浏览器地址栏里 data-pilot 前端的真实 origin（含 scheme 和端口）。
+      # 留空表示只接受同源父窗口，正是同源反代部署想要的语义（插件回落到 window.location.origin）。
+      # 仅当把前端单独发布到另一个 origin 时，才需要填宿主地址栏的真实 origin；
       # 填错的后果是 postMessage 被全部丢弃：页面打得开，但没有任何数据，也不报错。
-      - NUXT_PUBLIC_DP_EMBED_PARENT_ORIGIN=${DATAAGENT_EMBED_PARENT_ORIGIN:-http://localhost:5173}
+      - NUXT_PUBLIC_DP_EMBED_PARENT_ORIGIN=${DATAAGENT_EMBED_PARENT_ORIGIN:-}
     depends_on:
       - backend
     networks:
       app-network:
-      # 要能解析到 data-pilot-web，反代才连得上
+      # 要能解析到 data-pilot-web，反代才连得上；data-pilot 前端的 nginx 也要能解析到这里
       dp-dataagent-net:
+        aliases:
+          - data-agent-frontend
     restart: unless-stopped
 
-  # MySQL 模拟数据源
-  mysql-data:
-    image: mysql:8.0
-    container_name: data-agent-mysql-datasource
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DATAAGENT_DEMO_MYSQL_PASSWORD:-root}
-    networks:
-      - app-network
-    volumes:
-      - ./config/mysql:/docker-entrypoint-initdb.d
-    command: --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # PostgreSQL 模拟数据源
-  postgres-data:
-    image: postgres:15
-    container_name: data-agent-postgres-datasource
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DATAAGENT_DEMO_PG_PASSWORD:-postgres}
-    networks:
-      - app-network
-    volumes:
-      - ./config/postgres:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # 演示数据源（mysql-data / postgres-data）不在这里：生产不需要，
+  # 而且它们会让 backend 卡在 depends_on 的健康检查上。
+  # 本地想要演示数据，单独起同目录下的 docker-compose-datasource.yml。
 
 volumes:
   data-agent-mysql-inner-data:

@@ -114,6 +114,9 @@ export default defineNuxtConfig({
 	},
 	//全局动画配置
 	app: {
+		// 经宿主 nginx 以路径前缀反代时必须设置（如 /dataagent-ui/），否则 vue-router 的 base
+		// 与浏览器地址栏不一致：首屏路由匹配不上，内部跳转还会跳到宿主根路径去。构建期烘焙。
+		baseURL: process.env.DATAAGENT_BASE_URL || '/',
 		pageTransition: { name: 'page', mode: 'out-in' },
 	},
 	css: ['@/assets/css/main.css'],
